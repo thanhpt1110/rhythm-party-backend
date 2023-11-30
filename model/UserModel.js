@@ -53,8 +53,11 @@ const userSchema = mongoose.Schema({
     isAvailable:{
         type: Boolean,
         default: true
+    },
+    refreshToken:{
+        type: String,
+        default: ''
     }
-    
 },  
 {
     timestamps: true,

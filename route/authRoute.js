@@ -8,8 +8,8 @@ const CLIENT_URL = process.env.CLIENT_URL;
 const {isLoggedIn,isAuthenticatedCallBack, isSuccessLogin, isFailureLogin, Logout} = require('../controller/authController.js')
 router.route('/google').get(
   passport.authenticate('google', { scope:
-      [ 'email', 'profile' ] }
-));
+  [ 'email', 'profile' ] }
+  ));
 router.route('/google/callback').get(
   passport.authenticate( 'google', {
     successRedirect: CLIENT_URL,

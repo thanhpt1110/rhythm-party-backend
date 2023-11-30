@@ -5,11 +5,15 @@ const playlistSchema = mongoose.Schema({
         required: [true, "Please add your playlist name"]
     },
     listMusic:{
-        type: [mongoose.Schema.Types.ObjectId]
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'Music'
     },
     avatarPlaylist:{
-        
-    }
+        type: String,
+        default: ''
+    },
+    
+
 },  
 {
     timestamps: true,
