@@ -18,10 +18,10 @@ const authenticateToken =  (req,res,next) =>{
                 return res.sendStatus(401)
             const existingUser = await User.findOne({
             refreshToken: req.user.refreshToken,
-            _id: req.user._id})
+            _id: req.user.user._id})
             if(existingUser == null)
             {
-                return res.sendStatus(403)
+              return res.sendStatus(403)
             }           
             jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
               if (err) 

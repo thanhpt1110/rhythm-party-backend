@@ -6,7 +6,6 @@ const UserTable = require('../entity/UserTable')
 const getUser = asyncHandler (async(req,res)=>{
     if(req.isAuthenticated())
     {
-        User.find()
         res.status(200).json({message:"success", data: req.user})
     }
     else

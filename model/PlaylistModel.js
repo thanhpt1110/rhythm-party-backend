@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const PlaylistTable = require('../entity/PlaylistTable')
 const playlistSchema = mongoose.Schema({
     playListName:{
         type: String,
@@ -12,8 +13,21 @@ const playlistSchema = mongoose.Schema({
         type: String,
         default: ''
     },
-    
-
+    ownerPlaylistID:{
+        type: mongoose.Schema.Types.ObjectId,
+        require: [true, "Please add your owner playlist id"]
+    },
+    privacyStatus:{
+        type: String,
+        default: PlaylistTable.PLAYLIST_PRIVACY_PRIVATE
+    },
+    view: {
+        type: Number,
+        default: 0
+    },
+    description: {
+        type: String
+    }
 },  
 {
     timestamps: true,

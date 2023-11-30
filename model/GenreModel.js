@@ -8,10 +8,14 @@ const musicGenreSchema = mongoose.Schema({
     musicQuantity: {
         type: Number,
         default: 1
+    },
+    isPublic:{
+        type: Boolean,
+        default: false
     }
 },  
 {
     timestamps: true,
 }
 )
-module.exports = mongoose.model("MusicGenre", musicGenreSchema);
+module.exports = mongoose.model("Genre", musicGenreSchema);

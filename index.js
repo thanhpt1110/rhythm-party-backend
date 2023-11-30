@@ -24,10 +24,17 @@ app.use(session({
   }))
 app.use(passport.initialize())
 app.use(passport.session())
+app.use((req, res, next) => {
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
+    next();
+  });
 app.use('/auth',require('./route/authRoute.js'))
 app.use('/api/user',require('./route/userRoute.js'))
 app.use('/api/music',require('./route/musicRoute.js'))
-app.use('/api/genre',require('./route/musicGenreRoute.js'))
+app.use('/api/genre',require('./route/genreRoute.js'))
+app.use('/api/playlist',require('./route/playlistRoute.js'))
 const connect = async ()=>{
     try{
         await mongoose.connect(url)

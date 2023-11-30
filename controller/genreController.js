@@ -1,5 +1,5 @@
 require('dotenv').config();
-const MusicGenre = require('../model/GenreModel')
+const Genre = require('../model/GenreModel')
 const asyncHandler = require('express-async-handler')
 
 const get20MostFamousGerne = asyncHandler(async(req,res)=>{
@@ -25,4 +25,14 @@ const findGerne = asyncHandler(async(req,res)=>{
         res.status(500).json({message: "Internal Server Error"})
     }
 })
-module.exports = {findGerne, get20MostFamousGerne}
+const changeGerneStatus = asyncHandler(async(req,res)=>{
+  try{
+    const {musicGenre, isPublic} = req.body;
+    genre.updateOne({_id: req.params.id},{$set: {musicGenre: musicGenre, isPublic: isPublic}})
+  }
+  catch(ex)
+  {
+    res.sendStatus(400)
+  }
+})
+module.exports = {findGerne, get20MostFamousGerne, changeGerneStatus}

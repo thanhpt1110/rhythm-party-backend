@@ -4,7 +4,7 @@ const asyncHandler = require('express-async-handler')
 const MusicTable = require('../entity/MusicTable')
 const UserTable = require('../entity/UserTable')
 const getMusicByID = asyncHandler(async (req,res)=>{
-    console.log(req.params.id)
+
     const music = await Music.findById(req.params.id);
     if(music !== null && music !==undefined)
         res.status(200).json({message: "Success", data: music})
@@ -14,7 +14,6 @@ const getMusicByID = asyncHandler(async (req,res)=>{
 const findMusicByNamePublic = asyncHandler(async (req,res)=>{
     // Lấy giá trị từ query parameter 'search'
     const musicname = req.query.musicname;
-    console.log(searchTerm)
     // Sử dụng biểu thức chính quy để tạo điều kiện tìm kiếm
     try{
         const musicnameRegex = new RegExp('^' + musicname,'i');
@@ -99,7 +98,6 @@ const uploadMusic = asyncHandler(async (req, res)=>{
     }
     else
         res.status(401).json({message: "Unauthorize"})
-
 })
 const updateMusicPrivacyStatus = asyncHandler( async(req,res)=>{
     if(req.isAuthenticated())
