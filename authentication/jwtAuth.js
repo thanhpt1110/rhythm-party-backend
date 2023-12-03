@@ -6,6 +6,8 @@ function generateAccessToken(user) {
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15s' })
   }
 const authenticateToken =  (req,res,next) =>{
+  if(req.isAuthenticated())
+  {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
     if(token == null)
@@ -35,6 +37,10 @@ const authenticateToken =  (req,res,next) =>{
         else
             next()
     })
+  }
+  else{
+    return res.sendStatus(401)
+  }
 
 
 }

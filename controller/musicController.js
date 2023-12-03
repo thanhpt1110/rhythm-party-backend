@@ -4,16 +4,21 @@ const asyncHandler = require('express-async-handler')
 const MusicTable = require('../entity/MusicTable')
 const UserTable = require('../entity/UserTable')
 const getMusicByID = asyncHandler(async (req,res)=>{
-
     const music = await Music.findById(req.params.id);
     if(music !== null && music !==undefined)
+    {
+        await Music.updateOne({_id:req.params.id},{ $inc: { view: 1 } })
         res.status(200).json({message: "Success", data: music})
+    }
     else
         res.status(404).json({message: "Music not existed", data: null})
 })
 const findMusicByNamePublic = asyncHandler(async (req,res)=>{
     // Lấy giá trị từ query parameter 'search'
-    const musicname = req.query.musicname;
+    const musicname = req.query.music_name;
+    const quantity = req.query.quantity || 50;
+    const index = req.query.index || 0;
+    const desc = req.query.desc || -1;
     // Sử dụng biểu thức chính quy để tạo điều kiện tìm kiếm
     try{
         const musicnameRegex = new RegExp('^' + musicname,'i');
@@ -21,7 +26,10 @@ const findMusicByNamePublic = asyncHandler(async (req,res)=>{
             musicName: { $regex: musicnameRegex },  
             musicPrivacyType: MusicTable.MUSIC_PRIVACY_PUBLIC,
             musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_AUTHORIZE}
-        );
+        )          
+        .sort({ view: desc }) // Sắp xếp theo trường lượt nghe (giảm dần)
+        .skip(index) // Bỏ qua các bản ghi từ đầu tiên đến index
+        .limit(quantity); // Giới hạn kết quả trả về cho 'quantity'
         res.status(200).json({message: "Success",data: music});
     }
     catch(e)

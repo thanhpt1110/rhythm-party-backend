@@ -9,6 +9,6 @@ const {createPlaylist,getPlaylistByID
 router.route('/').post(authenticateToken,createPlaylist)
 .get(authenticateToken,getPlaylistFromCurrentUser)
 router.route('/search').get(searchPublicMusicPlaylistByName)
-router.route('/:id').put(authenticateToken,updatePlaylistMusicInfomation);
+router.route('/:id').get(getPlaylistByID).put(authenticateToken,updatePlaylistMusicInfomation);
 router.route('/getTop20').get(getMostFamous20Playlist)
 module.exports = router

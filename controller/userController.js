@@ -3,7 +3,7 @@ const User = require('../model/UserModel')
 const asyncHandler = require('express-async-handler')
 const bcrypt = require('bcrypt')
 const UserTable = require('../entity/UserTable')
-const getUser = asyncHandler (async(req,res)=>{
+const getYourProfileUser = asyncHandler (async(req,res)=>{
     if(req.isAuthenticated())
     {
         res.status(200).json({message:"success", data: req.user})
@@ -68,28 +68,121 @@ const updateUserById = asyncHandler(async(req,res)=>{
     }
 })
 const createNewAccount = asyncHandler(async(req,res) =>{
-    console.log(req.body)
-    const {username, email, password, displayName} = req.body;
-    const existingUser = await User.findOne({username: username})
-    if(existingUser!==null)
+    try{
+        const {username, email, password, displayName} = req.body;
+        const existingUser = await User.findOne({username: username})
+        if(existingUser!==null)
+        {
+            res.status(409).json({isSuccess: false, message: "Account already existed"})
+        }
+        else
+        {
+            const hashedPassword = await bcrypt.hash(password,10)
+            const user = await User.create({
+                displayName: displayName,
+                username: username,
+                password: hashedPassword,
+                email: email,
+                avatar: null,
+                accountType: UserTable.TYPE_LOCAL_ACCOUNT,
+                gender: null,
+                role: UserTable.ROLE_USER
+            })
+            console.log("first Create")
+            res.status(200).json({ message: "Success"})
+        }
+    }
+    catch(e)
     {
-        res.status(200).json({isSuccess: false, message: "Account already existed"})
+        res.status(500).json({message: "Server error"})
+    }
+})
+const createAdminAccount = asyncHandler(async (req,res)=>{
+    if(req.isAuthenticated() && req.user.user.role === UserTable.ROLE_ADMIN)
+    {
+        try{
+        const {username, email, avatar, gender, password, displayName, role} = req.body;
+        const existingUser = await User.findOne({username: username})
+        if(existingUser!==null)
+        {
+            res.status(409).json({message: "Account already existed"})
+        }
+        else
+        {
+            const hashedPassword = await bcrypt.hash(password,10)
+            const user = await User.create({
+                displayName: displayName,
+                username: username,
+                password: hashedPassword,
+                email: email,
+                avatar: avatar,
+                accountType: UserTable.TYPE_LOCAL_ACCOUNT,
+                gender: gender,
+                role: role || UserTable.ROLE_ADMIN
+            })
+            res.status(200).json({ message: "Success"})
+        }}
+        catch(e)
+        {
+            res.status(500).json({message: "Server error"})
+        }
+    }
+})
+const getListUser = asyncHandler(async(req,res)=>{
+    console.log(req.user.user.role)
+    if(req.isAuthenticated() && req.user.user.role===UserTable.ROLE_ADMIN)
+    {
+        const quantity = req.query.quantity || 50;
+        const index = (req.query.index || 0)*quantity;
+        const desc = req.query.des || -1;
+        try{
+            const user = await User.find({})          
+            .sort({createdAt: desc }) // Sắp xếp theo trường lượt nghe (giảm dần)
+            .skip(index) // Bỏ qua các bản ghi từ đầu tiên đến index
+            .limit(quantity); // Giới hạn kết quả trả về cho 'quantity'
+            res.status(200).json({message: "Success",data: user});
+        }
+        catch(e)
+        {
+            res.status(500).json({message: "Server error"})
+        }
     }
     else
     {
-        const hashedPassword = await bcrypt.hash(password,10)
-        const user = await User.create({
-            displayName: displayName,
-            username: username,
-            password: hashedPassword,
-            email: email,
-            avatar: null,
-            accountType: UserTable.TYPE_LOCAL_ACCOUNT,
-            gender: null,
-            role: UserTable.ROLE_USER
-        })
-        console.log("first Create")
-        res.json({isSuccess: true, message: "Success", user: user})
+        res.sendStatus(401)
     }
 })
-module.exports = {getUser,getUserByID,updateUserById,createNewAccount}
+const searchUserByNameAdmin = asyncHandler(async (req,res)=>{
+    if(req.isAuthenticated() && req.user.user.role===UserTable.ROLE_ADMIN)
+    {
+        const nameSearch = req.query.name || ''
+        const quantity = req.query.quantity || 10000;
+        const index = (req.query.index || 0) * quantity;
+        const desc = req.query.des || -1;
+        console.log(nameSearch)
+        try{
+            const nameSearchRegex = new RegExp('^' + nameSearch,'i');
+            const searchCondition = {
+                $or: [
+                    { displayName: { $regex: nameSearchRegex}},
+                    { username: { $regex: nameSearchRegex}},
+                    { email: nameSearch} 
+                ]
+            };
+            const user = await User.find(searchCondition)          
+            .sort({createdAt: desc }) // Sắp xếp theo trường lượt nghe (giảm dần)
+            .skip(index) // Bỏ qua các bản ghi từ đầu tiên đến index
+            .limit(quantity); // Giới hạn kết quả trả về cho 'quantity'
+            res.status(200).json({message: "Success",data: user});
+        }
+        catch(e)
+        {
+            res.status(500).json({message: "Server error"})
+        }
+    }
+    else
+    {
+        res.sendStatus(401)
+    }
+})
+module.exports = {getYourProfileUser,getUserByID,updateUserById,createNewAccount,searchUserByNameAdmin,getListUser}

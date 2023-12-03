@@ -6,8 +6,11 @@ const url = process.env.CONNECTION_STRING
 const port = process.env.PORT
 const passport = require('passport')
 const session = require('express-session')
+const http = require('http');
+const {Server} = require('socket.io')
 const cors = require('cors')
 const errorHandler = require('./middleware/errorHandler.js')
+const {socketInit} = require('./middleware/socketIO.js')
 require('./authentication/auth.js')
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -45,4 +48,12 @@ const connect = async ()=>{
     }   
 }
 connect();
-app.listen(port,()=>{console.log(`server run on port ${port}`)})
+const server = http.createServer(app);
+const io = new Server(server,{
+    cors:{
+        origin: 'http://localhost:3000',
+        methods: ['GET','POST']
+    }
+})
+socketInit(io)
+server.listen(port,()=>{console.log(`server run on port ${port}`)})

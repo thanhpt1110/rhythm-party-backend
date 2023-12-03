@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const {findGerne, get20MostFamousGerne} = require('../controller/genreController.js')
+const {findGerne, getMostFamousGerne} = require('../controller/genreController.js')
 router.route('/search').get(findGerne)
-router.route('/top20').get(get20MostFamousGerne)
+router.route('/top20').get(getMostFamousGerne)
 module.exports=router
