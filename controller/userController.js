@@ -6,7 +6,7 @@ const UserTable = require('../entity/UserTable')
 const getYourProfileUser = asyncHandler (async(req,res)=>{
     if(req.isAuthenticated())
     {
-        res.status(200).json({message:"success", data: req.user})
+        res.status(200).json({message:"success", data: req.user.user})
     }
     else
     {
@@ -185,4 +185,4 @@ const searchUserByNameAdmin = asyncHandler(async (req,res)=>{
         res.sendStatus(401)
     }
 })
-module.exports = {getYourProfileUser,getUserByID,updateUserById,createNewAccount,searchUserByNameAdmin,getListUser}
+module.exports = {getYourProfileUser,createAdminAccount,getUserByID,updateUserById,createNewAccount,searchUserByNameAdmin,getListUser}

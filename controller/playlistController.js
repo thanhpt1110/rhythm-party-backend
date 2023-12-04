@@ -16,7 +16,7 @@ const createPlaylist = asyncHandler(async(req,res)=>{
                 description: description,
                 ownerPlaylistID: req.user._id
             })
-            res.status(200).json({message: "Create playlist success", data: playlist})
+            res.status(200).json({message: "Create playlist success", data: playlist, accessToken: req.user.accessToken})
         }
         catch(Exception)
         {
@@ -39,8 +39,8 @@ const getPlaylistByID = asyncHandler(async(req,res)=>{
                     const playlistPrivate = await Playlist.findOne({_id: req.params.id, ownerPlaylistID: req.user.user._id})
                     if(playlistPrivate!=null)
                     {
-                        res.status(200).json({message: "Success", data: playlistPrivate})
-                        await Playlist.updateOne({_id: req.params.id}, { $inc: { view: 1 } })             
+                        await Playlist.updateOne({_id: req.params.id}, { $inc: { view: 1 } })            
+                        res.status(200).json({message: "Success", data: playlistPrivate,accessToken: req.user.accessToken})
                         return;
                     }
                     else{
@@ -61,8 +61,8 @@ const getPlaylistByID = asyncHandler(async(req,res)=>{
         }
         else
         {
-            res.status(200).json({message: "Success", data: playlistPublic})
             await Playlist.updateOne({_id: req.params.id}, { $inc: { view: 1 } })
+            res.status(200).json({message: "Success", data: playlistPublic, accessToken: req.user.accessToken})
         }
     }
     catch(e)
@@ -75,7 +75,7 @@ const getPlaylistFromCurrentUser = asyncHandler(async(req,res)=>{
     {
         try{
             const playlist = await Playlist.find({ownerPlaylistID: req.user.user._id})
-            res.status(200).json({message: "Success", data: playlist})
+            res.status(200).json({message: "Success", data: playlist, accessToken: req.user.accessToken})
         }
         catch(e)
         {
@@ -94,7 +94,7 @@ const updatePlaylistMusicInfomation = asyncHandler(async(req,res) =>{
             const {playListName, privacyStatus, description} = req.body
             const updateData = {playListName: playListName, privacyStatus: privacyStatus, description: description}
             const playlist = await Playlist.updateData({_id: req.params.id},updateData)
-            res.status(200).json({message: "Success", data: playlist})
+            res.status(200).json({message: "Success", data: playlist, accessToken: req.user.accessToken})
         }
         catch(e)
         {
@@ -120,11 +120,14 @@ const searchPublicMusicPlaylistByName =asyncHandler(async (req,res) =>{
         res.sendStatus(500)
     }
 })
-const getMostFamous20Playlist =asyncHandler(async(req,res) =>{
+const getMostFamousPlaylist =asyncHandler(async(req,res) =>{
     try{
+        const quantity = req.query.quantity || 20;
+        const index = (req.query.index || 0)*quantity;
         const playlist = await Playlist.find({privacyStatus: PlaylistTable.PLAYLIST_PRIVACY_PUBLIC})
         .sort({view: -1})
-        .limit(20);
+        .limit(quantity)
+        .skip(index);
         res.status(200).json({message: "Success", data: playlist})
     }
     catch(e)
@@ -132,4 +135,4 @@ const getMostFamous20Playlist =asyncHandler(async(req,res) =>{
         res.sendStatus(500)
     }
 })
-module.exports = {createPlaylist,getPlaylistByID,getPlaylistFromCurrentUser,updatePlaylistMusicInfomation,searchPublicMusicPlaylistByName,getMostFamous20Playlist}
+module.exports = {createPlaylist,getPlaylistByID,getPlaylistFromCurrentUser,updatePlaylistMusicInfomation,searchPublicMusicPlaylistByName,getMostFamousPlaylist}

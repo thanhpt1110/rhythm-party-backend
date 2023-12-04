@@ -5,10 +5,10 @@ const {createPlaylist,getPlaylistByID
     ,getPlaylistFromCurrentUser
     ,updatePlaylistMusicInfomation
     ,searchPublicMusicPlaylistByName
-    ,getMostFamous20Playlist} = require('../controller/playlistController')
+    ,getMostFamousPlaylist} = require('../controller/playlistController')
 router.route('/').post(authenticateToken,createPlaylist)
 .get(authenticateToken,getPlaylistFromCurrentUser)
 router.route('/search').get(searchPublicMusicPlaylistByName)
 router.route('/:id').get(getPlaylistByID).put(authenticateToken,updatePlaylistMusicInfomation);
-router.route('/getTop20').get(getMostFamous20Playlist)
+router.route('/topMusic').get(getMostFamousPlaylist)
 module.exports = router

@@ -37,28 +37,26 @@ const findMusicByNamePublic = asyncHandler(async (req,res)=>{
         res.status(500).json({message: "Server error"})
     }
 })
-const findMusicByNameWithUser = asyncHandler(async (req,res)=>{
+const getTopMusic = asyncHandler(async (req,res)=>{
     // Lấy giá trị từ query parameter 'search'
-    const musicname = req.query.musicname;
-    const userid = req.params.user_id;
-    if(userid !== req.user._id)
-    {
-        res.status(401).json({message: "Unauthorize"})
-        return;
-    }
-    // Sử dụng biểu thức chính quy để tạo điều kiện tìm kiếm
-    try{
-        const musicNameRegex = new RegExp('^' + musicname,'i');
-        const music = await Music.find({ 
-            musicName: { $regex: musicNameRegex },  
-            musicPostOwnerID: userid}
-        );
-        res.status(200).json({message: "Success",data: music});
-    }
-    catch(e)
-    {
-        res.status(500).json({message: "Server error"})
-    }
+        // Sử dụng biểu thức chính quy để tạo điều kiện tìm kiếm
+        try{
+            const quantity = req.query.quantity || 20
+            const index = (req.query.index || 0) * quantity
+            const music = await Music.find({
+            musicPrivacyType: MusicTable.MUSIC_PRIVACY_PUBLIC,
+            musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_AUTHORIZE
+            })
+            .sort({view: -1})
+            .limit(quantity)
+            .skip(index);
+            res.status(200).json({message: "Success",data: music});
+        }
+        catch(e)
+        {
+            console.log(e)
+            res.status(500).json({message: "Server error"})
+        }
 })
 const uploadMusic = asyncHandler(async (req, res)=>{
     if(req.isAuthenticated())
@@ -95,7 +93,7 @@ const uploadMusic = asyncHandler(async (req, res)=>{
             releaseYear: releaseYear,
             musicPostOwnerID: req.user._id
         })
-        res.status(200).json({message: "Success", data: music})
+        res.status(200).json({message: "Success", data: music, accessToken: req.user.accessToken})
         console.log("Create music success")
 
         }
@@ -118,7 +116,7 @@ const updateMusicPrivacyStatus = asyncHandler( async(req,res)=>{
                 return;
             }
             const result = await Music.updateOne({ _id: _id }, { $set: { musicPrivacyType:musicPrivacyType} }); 
-            res.status(200).json({message: "Update success", data: result})   
+            res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
         }
         catch(ex)
         {
@@ -138,7 +136,7 @@ const updateMusicAuthorization = asyncHandler(async(req,res)=>{
             try{
                 const { _id, musicAuthorize} = req.body;
                 const result = await Music.updateOne({ _id: _id }, { $set: { musicAuthorize: musicAuthorize} }); 
-                res.status(200).json({message: "Update success", data: result})   
+                res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
             }
             catch(ex)
             {
@@ -157,7 +155,7 @@ const getMusicUnauthentication = asyncHandler(async(req,res)=>{
         else{
             try{
                 const result = await Music.find({musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_UNAUTHORIZE})
-                res.status(200).json({message: "Update success", data: result})   
+                res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
             }
             catch(ex)
             {
@@ -171,7 +169,7 @@ const getMusicCurrentUser = asyncHandler(async(req,res)=>{
     {
         try{
             const result = await Music.find({musicPostOwnerID: req.user._id})
-            res.status(200).json({message: "Update success", data: result})   
+            res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
         }
         catch(ex)
         {
@@ -179,4 +177,4 @@ const getMusicCurrentUser = asyncHandler(async(req,res)=>{
         }
     }
 })
-module.exports = {getMusicByID,findMusicByNameWithUser,findMusicByNamePublic,uploadMusic,updateMusicPrivacyStatus,updateMusicAuthorization,getMusicUnauthentication,getMusicCurrentUser}
+module.exports = {getMusicByID,getTopMusic,findMusicByNamePublic,uploadMusic,updateMusicPrivacyStatus,updateMusicAuthorization,getMusicUnauthentication,getMusicCurrentUser}

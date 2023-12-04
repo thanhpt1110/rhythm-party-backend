@@ -28,7 +28,7 @@ const musicSchema = mongoose.Schema({
         default: ''
     },
     duration: {
-        type: String,
+        type: Number,
         required: [true, "Please add the duration of your music"]
     },
     description: {
