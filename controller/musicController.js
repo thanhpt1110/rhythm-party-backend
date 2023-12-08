@@ -165,11 +165,14 @@ const getMusicUnauthentication = asyncHandler(async(req,res)=>{
     }
 })
 const getMusicCurrentUser = asyncHandler(async(req,res)=>{
+    console.log(req.user)
+    console.log(req.isAuthenticated());
     if(req.isAuthenticated())
     {
         try{
             const result = await Music.find({musicPostOwnerID: req.user._id})
-            res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
+            console.log(result);
+            res.status(200).json({message: "Success", data: result, accessToken: req.user.accessToken})   
         }
         catch(ex)
         {
