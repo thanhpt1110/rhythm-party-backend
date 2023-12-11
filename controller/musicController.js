@@ -5,7 +5,7 @@ const MusicTable = require('../entity/MusicTable')
 const UserTable = require('../entity/UserTable')
 const getMusicByID = asyncHandler(async (req,res)=>{
     const music = await Music.findById(req.params.id);
-    if(music !== null && music !==undefined)
+    if(music)
     {
         await Music.updateOne({_id:req.params.id},{ $inc: { view: 1 } })
         res.status(200).json({message: "Success", data: music})
@@ -63,9 +63,9 @@ const uploadMusic = asyncHandler(async (req, res)=>{
     {
         try{
         console.log("Create music")
-        const {musicName, genre, author, lyrics, duration, description, url, releaseYear} = req.body
+        const {musicName, genre, author, lyrics, duration, description, url,imgUrl, releaseYear, musicPrivacyType} = req.body
         console.log(req.body)
-        if (!musicName || !genre || !author || !lyrics || !duration || !description || !url || !releaseYear) {
+        if (!musicName && !genre && !author && !lyrics && !duration && !description && !releaseYear) {
             res.status(400).json({ message: 'Missing required fields' });
             return;
         }
@@ -89,13 +89,14 @@ const uploadMusic = asyncHandler(async (req, res)=>{
             lyrics: lyrics,
             duration: duration,
             description: description,
-            url: url,
+            url: url ? url : null,
+            imgUrl: imgUrl ? imgUrl : null,
             releaseYear: releaseYear,
-            musicPostOwnerID: req.user._id
+            musicPrivacyType: musicPrivacyType,
+            musicPostOwnerID: req.user.user._id
         })
         res.status(200).json({message: "Success", data: music, accessToken: req.user.accessToken})
         console.log("Create music success")
-
         }
         catch(ex)
         {
@@ -104,6 +105,44 @@ const uploadMusic = asyncHandler(async (req, res)=>{
     }
     else
         res.status(401).json({message: "Unauthorize"})
+})
+const updateMusicInformation = asyncHandler(async(req,res)=>{
+    if(req.isAuthenticated())
+    {
+        const _id = req.params.id;
+        console.log(_id)
+        const existedMusic = await Music.findOne({_id:_id});
+        if(existedMusic)
+        {
+            if(existedMusic.musicPostOwnerID !== req.user.user._id)
+            {
+                try 
+                {                
+                    const {musicName, genre, author, lyrics, duration, description, url,imgUrl, releaseYear} = req.body ;
+                    const music = {           
+                    musicName: musicName? musicName: existedMusic.musicName,
+                    genre: genre ? genre :existedMusic.genre,
+                    author: author ? author: existedMusic.author,
+                    lyrics: lyrics ? lyrics: existedMusic.lyrics,
+                    duration: duration ? duration: existedMusic.duration,
+                    description: description ? description: existedMusic.description,
+                    url: url ? url : existedMusic.url,
+                    imgUrl: imgUrl ? imgUrl : existedMusic.imgUrl,
+                    releaseYear: releaseYear} 
+                    const result = await Music.findOneAndUpdate({ _id: _id }, { $set: music }, {new:true});
+                    const respone = {message: "Success", data: result} 
+                    res.status(200).json(respone);
+                }
+                catch(e){
+                    res.sendStatus(500)
+                }
+            }
+            else
+                res.sendStatus(401)
+        }
+        else
+            res.sendStatus(404);
+    }
 })
 const updateMusicPrivacyStatus = asyncHandler( async(req,res)=>{
     if(req.isAuthenticated())
@@ -170,7 +209,7 @@ const getMusicCurrentUser = asyncHandler(async(req,res)=>{
     if(req.isAuthenticated())
     {
         try{
-            const result = await Music.find({musicPostOwnerID: req.user._id})
+            const result = await Music.find({musicPostOwnerID: req.user.user._id})
             console.log(result);
             res.status(200).json({message: "Success", data: result, accessToken: req.user.accessToken})   
         }
@@ -180,4 +219,4 @@ const getMusicCurrentUser = asyncHandler(async(req,res)=>{
         }
     }
 })
-module.exports = {getMusicByID,getTopMusic,findMusicByNamePublic,uploadMusic,updateMusicPrivacyStatus,updateMusicAuthorization,getMusicUnauthentication,getMusicCurrentUser}
+module.exports = {updateMusicInformation,getMusicByID,getTopMusic,findMusicByNamePublic,uploadMusic,updateMusicPrivacyStatus,updateMusicAuthorization,getMusicUnauthentication,getMusicCurrentUser}

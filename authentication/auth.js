@@ -56,11 +56,11 @@ passport.use(new GoogleStrategy({
             }
             const accessToken = generateAccessToken(userData)
             const refreshToken = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET)
+            await User.updateOne({ _id: existingUser._id }, { $set: { refreshToken: refreshToken } });
             const userRespone = {
                 user: userData,
                 refreshToken: refreshToken,
-                accessToken: accessToken,
-                accessToken: generateAccessToken(userData)
+                accessToken: accessToken
             }
             done(null,userRespone)
         }
