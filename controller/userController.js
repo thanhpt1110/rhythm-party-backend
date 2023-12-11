@@ -28,50 +28,60 @@ const getUserByID = asyncHandler(async(req,res)=>{
 
 })
 const updateUserById = asyncHandler(async(req,res)=>{
-    const id = req.params.id;
-    console.log(id);
-    //console.log(req)
-    if(req.isAuthenticated())
-    {
-        if(id === req.user._id || req.user.role === "admin")
+    try{
+        if(req.isAuthenticated())
         {
-            try {
-                const {displayName, gender, birthday, avatar} = req.body;
-                const user = await User.findById(id);
-                if (!user) {
-                    return res.status(404).json({ message: 'User not found' });
-                }  
-                if (displayName != null) {
-                    user.displayName = displayName;
+            const id = req.params.id;
+            if(id === req.user.user._id || req.user.user.role === "admin")
+            {
+                try {
+                    const {displayName, gender, birthday, avatar} = req.body;
+                    const user = await User.findById(id);
+                    if (!user) {
+                        return res.status(404).json({ message: 'User not found' });
+                    }  
+                    user.displayName = displayName ? displayName : user.displayName;
+                    user.gender = gender ? gender : user.gender;
+                    user.birthday = birthday ? birthday: user.birthday;
+                    user.avatar = avatar ? avatar : user.avatar;
+                    await user.save();
+                    const userData = {
+                        displayName: user.displayName,
+                        gender: user.gender,
+                        birthday: user.birthday,
+                        avatar: user.avatar,
+                        role: user.role,
+                        _id: user._id,
+                        email: user.email
+                    }
+                    if(req.user.user._id === id)
+                    {
+                        req.user.user = userData
+                    }
+                    return res.status(200).json({message: "success", data: userData});
+                } catch (err) {
+                    res.status(500).json({ message: "Server error" });
                 }
-                if (gender != null) {
-                    user.gender = gender;
-                }
-                if (birthday != null) {
-                    user.birthday = birthday;
-                }
-                if (avatar != null) {
-                    user.avatar = avatar;
-                }
-                await user.save();
-                res.status(200).json({message: "success", user: user});
-            } catch (err) {
-                res.status(500).json({ message: err.message });
             }
+            else
+                res.status(401).json({message: "Unauthorize role"})
         }
         else
-            res.status(401).json({message: "Unauthorize role"})
+        {
+            res.status(401).json({message: "Unauthorize"})
+        }  
     }
-    else
+    catch(e)
     {
-        res.status(401).json({message: "Unauthorize"})
+        res.sendStatus(500)
     }
+    
 })
 const createNewAccount = asyncHandler(async(req,res) =>{
     try{
         const {username, email, password, displayName} = req.body;
-        const existingUser = await User.findOne({username: username})
-        if(existingUser!==null)
+        const user = await User.findOne({username: username})
+        if(user!==null)
         {
             res.status(409).json({isSuccess: false, message: "Account already existed"})
         }
@@ -102,8 +112,8 @@ const createAdminAccount = asyncHandler(async (req,res)=>{
     {
         try{
         const {username, email, avatar, gender, password, displayName, role} = req.body;
-        const existingUser = await User.findOne({username: username})
-        if(existingUser!==null)
+        const user = await User.findOne({username: username})
+        if(user!==null)
         {
             res.status(409).json({message: "Account already existed"})
         }
@@ -126,6 +136,9 @@ const createAdminAccount = asyncHandler(async (req,res)=>{
         {
             res.status(500).json({message: "Server error"})
         }
+    }
+    else{
+        res.sendStatus(401)
     }
 })
 const getListUser = asyncHandler(async(req,res)=>{

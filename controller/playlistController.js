@@ -2,30 +2,36 @@ const asyncHandler = require('express-async-handler')
 const Playlist = require('../model/PlaylistModel')
 const PlaylistTable = require('../entity/PlaylistTable')
 const createPlaylist = asyncHandler(async(req,res)=>{
-    if(req.isAuthenticated())
-    {
-        try{
-            const {playListName, description} = req.body
-            if(!playListName)
-            {
-                res.status(400).json({message: "input field need to be required"})
-                return;
-            }
-            const playlist = await Playlist.create({
-                playListName: playListName,
-                description: description,
-                ownerPlaylistID: req.user._id
-            })
-            res.status(200).json({message: "Create playlist success", data: playlist, accessToken: req.user.accessToken})
-        }
-        catch(Exception)
+    try{
+        if(req.isAuthenticated())
         {
-            res.sendStatus(500)
+            try{
+                const {playListName, description} = req.body
+                if(!playListName)
+                {
+                    res.status(400).json({message: "input field need to be required"})
+                    return;
+                }
+                const playlist = await Playlist.create({
+                    playListName: playListName,
+                    description: description,
+                    ownerPlaylistID: req.user._id
+                })
+                res.status(200).json({message: "Create playlist success", data: playlist, accessToken: req.user.accessToken})
+            }
+            catch(Exception)
+            {
+                res.sendStatus(500)
+            }
+        }
+        else
+        {
+            res.sendStatus(401)
         }
     }
-    else
+    catch(e)
     {
-        res.sendStatus(401)
+        res.sendStatus(500)
     }
 })
 const getPlaylistByID = asyncHandler(async(req,res)=>{
@@ -79,7 +85,7 @@ const getPlaylistFromCurrentUser = asyncHandler(async(req,res)=>{
         }
         catch(e)
         {
-            res.sendStatus(401)
+            res.sendStatus(500)
         }
     }
     else{
@@ -98,7 +104,7 @@ const updatePlaylistMusicInfomation = asyncHandler(async(req,res) =>{
         }
         catch(e)
         {
-            res.sendStatus(401)
+            res.sendStatus(500)
         }
     }
     else{

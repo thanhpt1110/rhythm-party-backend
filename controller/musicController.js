@@ -4,14 +4,20 @@ const asyncHandler = require('express-async-handler')
 const MusicTable = require('../entity/MusicTable')
 const UserTable = require('../entity/UserTable')
 const getMusicByID = asyncHandler(async (req,res)=>{
-    const music = await Music.findById(req.params.id);
-    if(music)
-    {
-        await Music.updateOne({_id:req.params.id},{ $inc: { view: 1 } })
-        res.status(200).json({message: "Success", data: music})
+    try{
+        const music = await Music.findById(req.params.id);
+        if(music)
+        {
+            await Music.updateOne({_id:req.params.id},{ $inc: { view: 1 } })
+            res.status(200).json({message: "Success", data: music})
+        }
+        else
+            res.status(404).json({message: "Music not existed", data: null})
     }
-    else
-        res.status(404).json({message: "Music not existed", data: null})
+    catch(e)
+    {
+        return res.sendStatus(500)
+    }
 })
 const findMusicByNamePublic = asyncHandler(async (req,res)=>{
     // Lấy giá trị từ query parameter 'search'
@@ -59,164 +65,217 @@ const getTopMusic = asyncHandler(async (req,res)=>{
         }
 })
 const uploadMusic = asyncHandler(async (req, res)=>{
-    if(req.isAuthenticated())
-    {
-        try{
-        console.log("Create music")
-        const {musicName, genre, author, lyrics, duration, description, url,imgUrl, releaseYear, musicPrivacyType} = req.body
-        console.log(req.body)
-        if (!musicName && !genre && !author && !lyrics && !duration && !description && !releaseYear) {
-            res.status(400).json({ message: 'Missing required fields' });
-            return;
-        }
-        for (let i = 0; i < genre.length; i++) {
-            try {
-              const existingGenre = await MusicGenre.findOne({ musicGenre: genre[i] });
-    
-              if (existingGenre) {
-                await MusicGenre.updateOne({ _id: existingGenre._id }, { $inc: { musicQuantity: 1 } });
-              } else {
-                await MusicGenre.create({ musicGenre: genre[i] });
-              }
-            } catch (error) {
-              return res.status(500).json({ message: "Internal Server Error" });
-            }
-          }
-        const music = await Music.create({
-            musicName: musicName,
-            genre: genre,
-            author: author,
-            lyrics: lyrics,
-            duration: duration,
-            description: description,
-            url: url ? url : null,
-            imgUrl: imgUrl ? imgUrl : null,
-            releaseYear: releaseYear,
-            musicPrivacyType: musicPrivacyType,
-            musicPostOwnerID: req.user.user._id
-        })
-        res.status(200).json({message: "Success", data: music, accessToken: req.user.accessToken})
-        console.log("Create music success")
-        }
-        catch(ex)
+    try{
+        if(req.isAuthenticated())
         {
-            res.status(500).json({message: "Server error", error: ex})
-        }
-    }
-    else
-        res.status(401).json({message: "Unauthorize"})
-})
-const updateMusicInformation = asyncHandler(async(req,res)=>{
-    if(req.isAuthenticated())
-    {
-        const _id = req.params.id;
-        console.log(_id)
-        const existedMusic = await Music.findOne({_id:_id});
-        if(existedMusic)
-        {
-            if(existedMusic.musicPostOwnerID !== req.user.user._id)
-            {
-                try 
-                {                
-                    const {musicName, genre, author, lyrics, duration, description, url,imgUrl, releaseYear} = req.body ;
-                    const music = {           
-                    musicName: musicName? musicName: existedMusic.musicName,
-                    genre: genre ? genre :existedMusic.genre,
-                    author: author ? author: existedMusic.author,
-                    lyrics: lyrics ? lyrics: existedMusic.lyrics,
-                    duration: duration ? duration: existedMusic.duration,
-                    description: description ? description: existedMusic.description,
-                    url: url ? url : existedMusic.url,
-                    imgUrl: imgUrl ? imgUrl : existedMusic.imgUrl,
-                    releaseYear: releaseYear} 
-                    const result = await Music.findOneAndUpdate({ _id: _id }, { $set: music }, {new:true});
-                    const respone = {message: "Success", data: result} 
-                    res.status(200).json(respone);
-                }
-                catch(e){
-                    res.sendStatus(500)
-                }
-            }
-            else
-                res.sendStatus(401)
-        }
-        else
-            res.sendStatus(404);
-    }
-})
-const updateMusicPrivacyStatus = asyncHandler( async(req,res)=>{
-    if(req.isAuthenticated())
-    {
-        try{
-            const { _id, musicPrivacyType,  musicPostOwnerID} = req.body;
-            if(musicPostOwnerID != req.user._id)
-            {
-                res.status(404).json({message: "Validation error"})
+            try{
+            console.log("Create music")
+            const {musicName, genre, author, lyrics, duration, description, url,imgUrl, releaseYear, musicPrivacyType} = req.body
+            console.log(req.body)
+            if (!musicName && !genre && !author && !lyrics && !duration && !description && !releaseYear) {
+                res.status(400).json({ message: 'Missing required fields' });
                 return;
             }
-            const result = await Music.updateOne({ _id: _id }, { $set: { musicPrivacyType:musicPrivacyType} }); 
-            res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
+            for (let i = 0; i < genre.length; i++) {
+                try {
+                  const existingGenre = await MusicGenre.findOne({ musicGenre: genre[i] });
+        
+                  if (existingGenre) {
+                    await MusicGenre.updateOne({ _id: existingGenre._id }, { $inc: { musicQuantity: 1 } });
+                  } else {
+                    await MusicGenre.create({ musicGenre: genre[i] });
+                  }
+                } catch (error) {
+                  return res.status(500).json({ message: "Internal Server Error" });
+                }
+              }
+            const music = await Music.create({
+                musicName: musicName,
+                genre: genre,
+                author: author,
+                lyrics: lyrics,
+                duration: duration,
+                description: description,
+                url: url ? url : null,
+                imgUrl: imgUrl ? imgUrl : null,
+                releaseYear: releaseYear,
+                musicPrivacyType: musicPrivacyType,
+                musicPostOwnerID: req.user.user._id
+            })
+            res.status(200).json({message: "Success", data: music, accessToken: req.user.accessToken})
+            console.log("Create music success")
+            }
+            catch(ex)
+            {
+                res.status(500).json({message: "Server error", error: ex})
+            }
         }
-        catch(ex)
+        else
+            res.status(401).json({message: "Unauthorize"})
+    }
+    catch(e)
+    {
+        return res.sendStatus(500)
+    }
+})
+const updateMusicInformation = asyncHandler(async(req,res)=>{
+    try{
+        if(req.isAuthenticated())
         {
-            res.status(500).json({message: "Server error", error: ex})            
+            const _id = req.params.id;
+            console.log(_id)
+            const existedMusic = await Music.findOne({_id:_id});
+            if(existedMusic)
+            {
+                if(existedMusic.musicPostOwnerID !== req.user.user._id)
+                {
+                    try 
+                    {                
+                        const {musicName, genre, author, lyrics, duration, description, url,imgUrl, releaseYear} = req.body ;
+                        const music = {           
+                        musicName: musicName? musicName: existedMusic.musicName,
+                        genre: genre ? genre :existedMusic.genre,
+                        author: author ? author: existedMusic.author,
+                        lyrics: lyrics ? lyrics: existedMusic.lyrics,
+                        duration: duration ? duration: existedMusic.duration,
+                        description: description ? description: existedMusic.description,
+                        url: url ? url : existedMusic.url,
+                        imgUrl: imgUrl ? imgUrl : existedMusic.imgUrl,
+                        releaseYear: releaseYear} 
+                        const result = await Music.findOneAndUpdate({ _id: _id }, { $set: music }, {new:true});
+                        const respone = {message: "Success", data: result} 
+                        res.status(200).json(respone);
+                    }
+                    catch(e){
+                        res.sendStatus(500)
+                    }
+                }
+                else
+                    res.sendStatus(401)
+            }
+            else
+                res.sendStatus(404);
         }
     }
-    else{
-        res.status(401).json({message: "Unauthorize"})
+    catch(e)
+    {res.sendStatus(500)}
+})
+const updateMusicPrivacyStatus = asyncHandler( async(req,res)=>{
+    try{
+        if(req.isAuthenticated())
+        {
+            try{
+                const { _id, musicPrivacyType,  musicPostOwnerID} = req.body;
+                if(musicPostOwnerID != req.user._id)
+                {
+                    res.status(404).json({message: "Validation error"})
+                    return;
+                }
+                const result = await Music.updateOne({ _id: _id }, { $set: { musicPrivacyType:musicPrivacyType} }); 
+                res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
+            }
+            catch(ex)
+            {
+                res.status(500).json({message: "Server error", error: ex})            
+            }
+        }
+        else{
+            res.status(401).json({message: "Unauthorize"})
+        }
+    }
+    catch(e)
+    {
+        return res.sendStatus(500);
     }
 })
 const updateMusicAuthorization = asyncHandler(async(req,res)=>{
-    if(req.isAuthenticated())
-    {
-        if(req.user.role!== UserTable.ROLE_ADMIN)
-            res.status(401).json({message: "Unauthorize"})
-        else{
-            try{
-                const { _id, musicAuthorize} = req.body;
-                const result = await Music.updateOne({ _id: _id }, { $set: { musicAuthorize: musicAuthorize} }); 
-                res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
-            }
-            catch(ex)
-            {
-                res.status(500).json({message: "Server error", error: ex})            
+    try{
+        if(req.isAuthenticated())
+        {
+            if(req.user.role!== UserTable.ROLE_ADMIN)
+                res.status(401).json({message: "Unauthorize"})
+            else{
+                try{
+                    const { _id, musicAuthorize} = req.body;
+                    const result = await Music.updateOne({ _id: _id }, { $set: { musicAuthorize: musicAuthorize} }); 
+                    return res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
+                }
+                catch(ex)
+                {
+                   return res.status(500).json({message: "Server error", error: ex})            
+                }
             }
         }
+        else
+            res.status(401).json({message: "Unauthorize"})
     }
-    else
-        res.status(401).json({message: "Unauthorize"})
+    catch(e)
+    {
+        res.sendStatus(500);
+    }
 })
 const getMusicUnauthentication = asyncHandler(async(req,res)=>{
-    if(req.isAuthenticated())
-    {
-        if(req.user.role!== UserTable.ROLE_ADMIN)
-        res.status(401).json({message: "Unauthorize"})
-        else{
-            try{
-                const result = await Music.find({musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_UNAUTHORIZE})
-                res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
-            }
-            catch(ex)
-            {
-                res.status(500).json({message: "Server error", error: ex})            
+    try{
+        if(req.isAuthenticated())
+        {
+            if(req.user.role!== UserTable.ROLE_ADMIN)
+            res.status(401).json({message: "Unauthorize"})
+            else{
+                try{
+                    const result = await Music.find({musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_UNAUTHORIZE})
+                    return res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
+                }
+                catch(ex)
+                {
+                   return res.status(500).json({message: "Server error", error: ex})            
+                }
             }
         }
+        else
+           return res.sendStatus(401)
+    }
+    catch(e){
+        return res.sendStatus(500)
     }
 })
 const getMusicCurrentUser = asyncHandler(async(req,res)=>{
     console.log(req.user)
     console.log(req.isAuthenticated());
-    if(req.isAuthenticated())
-    {
-        try{
-            const result = await Music.find({musicPostOwnerID: req.user.user._id})
-            console.log(result);
-            res.status(200).json({message: "Success", data: result, accessToken: req.user.accessToken})   
-        }
-        catch(ex)
+    try{
+        if(req.isAuthenticated())
         {
-            res.status(500).json({message: "Server error", error: ex})            
+            try{
+                const result = await Music.find({musicPostOwnerID: req.user.user._id})
+                console.log(result);
+                res.status(200).json({message: "Success", data: result, accessToken: req.user.accessToken})   
+            }
+            catch(ex)
+            {
+                res.status(500).json({message: "Server error", error: ex})            
+            }
+        }
+        else{
+            res.sendStatus(401);
         }
     }
+    catch(e)
+    {
+        res.sendStatus(500)
+    }
 })
-module.exports = {updateMusicInformation,getMusicByID,getTopMusic,findMusicByNamePublic,uploadMusic,updateMusicPrivacyStatus,updateMusicAuthorization,getMusicUnauthentication,getMusicCurrentUser}
+const listenMusic = asyncHandler(async(req,res)=>{
+    try{
+        const music = await Music.findById(req.params.id);
+        if(music)
+        {
+            await Music.updateOne({_id:req.params.id},{ $inc: { view: 1 } })
+        }
+        else
+            res.status(404).json({message: "Music not existed", data: null})
+    }
+    catch(e)
+    {
+        res.sendStatus(500);
+    }
+})
+module.exports = {listenMusic,updateMusicInformation,getMusicByID,getTopMusic,findMusicByNamePublic,uploadMusic,updateMusicPrivacyStatus,updateMusicAuthorization,getMusicUnauthentication,getMusicCurrentUser}

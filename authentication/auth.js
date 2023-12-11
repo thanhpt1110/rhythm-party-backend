@@ -28,7 +28,6 @@ passport.use(new GoogleStrategy({
                 gender: null,
                 role: UserTable.ROLE_USER
             })
-            console.log("first Create")
             const userData = {
                 displayName: user.displayName,
                 gender: user.gender,
@@ -36,6 +35,7 @@ passport.use(new GoogleStrategy({
                 avatar: user.avatar,
                 role: user.role,
                 _id: user._id,
+                email: user.email
             }
             const refreshToken = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET)
             const userRespone = {
@@ -52,7 +52,8 @@ passport.use(new GoogleStrategy({
                 birthday: existingUser.birthday,
                 avatar: existingUser.avatar,
                 role: existingUser.role,
-                _id: existingUser._id
+                _id: existingUser._id,
+                email: existingUser.email
             }
             const accessToken = generateAccessToken(userData)
             const refreshToken = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET)
@@ -67,63 +68,74 @@ passport.use(new GoogleStrategy({
     }
     catch(Exception)
     {
-        console.log(Exception)
-        done(null,profile)
+        done(null,false)
     }
   })
 ));
 passport.use(UserTable.ROLE_USER,new LocalStrategy(
     asyncHandler( async function(username, password, done) {
-        const existingUser = await User.findOne({username: username, accountType: UserTable.TYPE_LOCAL_ACCOUNT});
-        console.log(existingUser)   
-        if(existingUser&& (await bcrypt.compare(password, existingUser.password)))
-        {
-            const userData = {
-                displayName: existingUser.displayName,
-                gender: existingUser.gender,
-                birthday: existingUser.birthday,
-                avatar: existingUser.avatar,
-                role: existingUser.role,
-                _id: existingUser._id
+        try{
+            const existingUser = await User.findOne({username: username, accountType: UserTable.TYPE_LOCAL_ACCOUNT}); 
+            if(existingUser&& (await bcrypt.compare(password, existingUser.password)))
+            {
+                const userData = {
+                    displayName: existingUser.displayName,
+                    gender: existingUser.gender,
+                    birthday: existingUser.birthday,
+                    avatar: existingUser.avatar,
+                    role: existingUser.role,
+                    _id: existingUser._id,
+                    email: existingUser.email
+                }
+                const refreshToken = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET)
+                await User.updateOne({ _id: existingUser._id }, { $set: { refreshToken: refreshToken } });
+                const userRespone = {
+                    user: userData,
+                    refreshToken: refreshToken,
+                    accessToken: generateAccessToken(userData)
+                }
+                return done(null,userRespone);
             }
-            const refreshToken = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET)
-            await User.updateOne({ _id: existingUser._id }, { $set: { refreshToken: refreshToken } });
-            const userRespone = {
-                user: userData,
-                refreshToken: refreshToken,
-                accessToken: generateAccessToken(userData)
-            }
-            return done(null,userRespone);
+            else
+                return done(null,false)
         }
-        else
+        catch(e)
+        {
             return done(null,false)
-    }
+        }
+    }   
   )));
   passport.use(UserTable.ROLE_ADMIN,new LocalStrategy(
     asyncHandler( async function(username, password, done) {
-        const existingUser = await User.findOne({username: username, accountType: UserTable.TYPE_LOCAL_ACCOUNT,role: UserTable.ROLE_ADMIN});
-        console.log(existingUser)   
-        if(existingUser&& (await bcrypt.compare(password, existingUser.password)))
-         {
-            const userData = {
-                displayName: existingUser.displayName,
-                gender: existingUser.gender,
-                birthday: existingUser.birthday,
-                avatar: existingUser.avatar,
-                role: existingUser.role,
-                _id: existingUser._id
-            }
-            const refreshToken = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET)
-            await User.updateOne({ _id: existingUser._id }, { $set: { refreshToken: refreshToken } });
-            const userRespone = {
-                user: userData,
-                refreshToken: refreshToken,
-                accessToken: generateAccessToken(userData)
-            }
-            return done(null,userRespone);
-         }
-        else
-            return done(null,false)
+        try{
+            const existingUser = await User.findOne({username: username, accountType: UserTable.TYPE_LOCAL_ACCOUNT,role: UserTable.ROLE_ADMIN});  
+            if(existingUser&& (await bcrypt.compare(password, existingUser.password)))
+             {
+                const userData = {
+                    displayName: existingUser.displayName,
+                    gender: existingUser.gender,
+                    birthday: existingUser.birthday,
+                    avatar: existingUser.avatar,
+                    role: existingUser.role,
+                    _id: existingUser._id,
+                    email: existingUser.email
+                }
+                const refreshToken = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET)
+                await User.updateOne({ _id: existingUser._id }, { $set: { refreshToken: refreshToken } });
+                const userRespone = {
+                    user: userData,
+                    refreshToken: refreshToken,
+                    accessToken: generateAccessToken(userData)
+                }
+                return done(null,userRespone);
+             }
+            else
+                return done(null,false)
+        }
+        catch(e)
+        {
+            return done(null,false);
+        }
     }
   )));
 passport.serializeUser((user,done)=>{
