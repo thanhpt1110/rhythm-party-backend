@@ -4,7 +4,8 @@ const router = express.Router()
 const {getMusicByID,findMusicByNamePublic,getTopMusic,uploadMusic
     ,updateMusicPrivacyStatus
     ,updateMusicAuthorization,getMusicUnauthentication
-    ,getMusicCurrentUser,updateMusicInformation,listenMusic} = require('../controller/musicController')
+    ,getMusicCurrentUser,updateMusicInformation,listenMusic
+    ,musicMessageUpload,updateViewMusic} = require('../controller/musicController')
 const {authenticateToken} = require('../authentication/jwtAuth')
 router.route('/').post(authenticateToken,uploadMusic).get(authenticateToken,getMusicCurrentUser);
 router.route('/search').get(findMusicByNamePublic);
@@ -15,4 +16,5 @@ router.route('/admin/get-music-unauthentication').get(authenticateToken,getMusic
 router.route('/user/:user_id');
 router.route('/listen/:id').get(listenMusic)
 router.route('/:id').get(getMusicByID).put(authenticateToken,updateMusicInformation);
+router.route('/music-message/:id').post(authenticateToken,musicMessageUpload);
 module.exports = router;

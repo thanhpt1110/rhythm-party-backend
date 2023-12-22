@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const MusicTable = require('../entity/MusicTable')
+const Message_Music = require('./MessageMusic')
 const musicSchema = mongoose.Schema({
     musicName:{
         type: String,
@@ -56,7 +57,11 @@ const musicSchema = mongoose.Schema({
         type: String,
         enum: [MusicTable.MUSIC_AUTHENTICATION_AUTHORIZE,MusicTable.MUSIC_AUTHENTICATION_UNAUTHORIZE],
         default: MusicTable.MUSIC_AUTHENTICATION_UNAUTHORIZE
-    }
+    },
+    messages: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Message_Music'
+    }]
 },  
 {
     timestamps: true,
