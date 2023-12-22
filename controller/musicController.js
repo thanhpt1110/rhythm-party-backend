@@ -13,25 +13,21 @@ const getMusicByID = asyncHandler(async (req,res)=>{
             populate: {
                 path: 'userId',
                 model: 'User',
-                select: 'avatar' // Chọn các trường bạn muốn hiển thị, ví dụ 'avatar'
+                select: ['avatar','displayName'] // Chọn các trường bạn muốn hiển thị, ví dụ 'avatar'
             }
         });
+        if(music)
+        {
+            await Music.updateOne({_id:req.params.id},{ $inc: { view: 1 } })
+            res.status(200).json({message: "Success", data: music})
+        }
+        else
+            res.status(404).json({message: "Music not existed", data: null})
     }
     catch(e)
     {
         return res.sendStatus(500)
     }
-})
-const updateViewMusic = asyncHandler(async(req,res)=>{
-    try{
-        await Music.updateOne({_id:req.params.id},{ $inc: { view: 1 } })
-        res.status(200).json({message: "Success", data: music})
-    }
-    catch(e)
-    {
-        return res.sendStatus(500);
-    }
-    
 })
 const findMusicByNamePublic = asyncHandler(async (req,res)=>{
     // Lấy giá trị từ query parameter 'search'
@@ -299,7 +295,14 @@ const musicMessageUpload = asyncHandler(async(req,res)=>{
            const newMessage = await MessageMusic.create({
                 userId:req.user.user._id,
                 message:message
-            });
+            })
+            const Message = await MessageMusic.findById(newMessage._id)
+            .populate({
+                path: 'userId',
+                model: 'User',
+                select: ['avatar', 'displayName'],
+            })
+            .exec();
             const music = await Music.findById(req.params.id);
             if (!music) {
                 res.sendStatus(404)
@@ -307,7 +310,7 @@ const musicMessageUpload = asyncHandler(async(req,res)=>{
             }
             music.messages.push(newMessage._id);
             music.save();
-            return res.status(200).json({message: "Success", data: newMessage});
+            return res.status(200).json({message: "Success", data: Message});
         }
         else
             return res.sendStatus(401)
@@ -321,4 +324,4 @@ module.exports = {listenMusic,
     updateMusicInformation,getMusicByID,
     getTopMusic,findMusicByNamePublic,uploadMusic,
     updateMusicPrivacyStatus,updateMusicAuthorization,
-    getMusicUnauthentication,getMusicCurrentUser,musicMessageUpload,updateViewMusic}
+    getMusicUnauthentication,getMusicCurrentUser,musicMessageUpload}
