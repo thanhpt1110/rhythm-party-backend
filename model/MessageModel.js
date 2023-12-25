@@ -1,21 +1,20 @@
 const mongoose = require('mongoose')
-
-const MessageSchema = mongoose.Schema({
-    message:{
+const messageMusicSchema = mongoose.Schema({
+    date: {
+        type: Date,
+        default: Date.now
+    },
+    message: {
         type: String,
-        required: [true, 'Please add your new message']
+        required: [true, "Please add a message"]
     },
-    roomID:{
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
-        require: [true, "Please add your roomID"],
-        ref: 'Room'
-    },
-    senderID:{
-        type: mongoose.Schema.Types.ObjectId,
-        require: [true, "Please add your senderID"],
+        required: [true, "Please add user ID"],
         ref: 'User'
     }
-},
+},  
 {
     timestamps: true,
-})
+});
+module.exports = mongoose.model("Message", messageMusicSchema);

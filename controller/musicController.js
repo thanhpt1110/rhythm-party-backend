@@ -3,8 +3,8 @@ const MusicGenre = require('../model/GenreModel')
 const asyncHandler = require('express-async-handler')
 const MusicTable = require('../entity/MusicTable')
 const UserTable = require('../entity/UserTable')
-const MusicMessage = require('../model/MessageMusic')
-const MessageMusic = require('../model/MessageMusic')
+const MusicMessage = require('../model/MessageModel')
+const MessageMusic = require('../model/MessageModel')
 const getMusicByID = asyncHandler(async (req,res)=>{
     try{
         const music = await Music.findById(req.params.id).populate({
@@ -18,7 +18,6 @@ const getMusicByID = asyncHandler(async (req,res)=>{
         });
         if(music)
         {
-            await Music.updateOne({_id:req.params.id},{ $inc: { view: 1 } })
             res.status(200).json({message: "Success", data: music})
         }
         else

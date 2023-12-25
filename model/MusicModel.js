@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const MusicTable = require('../entity/MusicTable')
-const Message_Music = require('./MessageMusic')
+const Message_Music = require('./MessageModel')
 const musicSchema = mongoose.Schema({
     musicName:{
         type: String,
@@ -60,7 +60,7 @@ const musicSchema = mongoose.Schema({
     },
     messages: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Message_Music'
+        ref: 'Message'
     }]
 },  
 {
