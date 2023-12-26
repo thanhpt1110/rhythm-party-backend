@@ -36,13 +36,31 @@ const createPlaylist = asyncHandler(async(req,res)=>{
 })
 const getPlaylistByID = asyncHandler(async(req,res)=>{
     try{
-        const playlistPublic = await Playlist.findOne({_id: req.params.id, privacyStatus: PlaylistTable.PLAYLIST_PRIVACY_PUBLIC});
+        const playlistPublic = await Playlist.findOne({_id: req.params.id, privacyStatus: PlaylistTable.PLAYLIST_PRIVACY_PUBLIC})                 
+        .populate({
+            path: 'ownerPlaylistID',
+            model: 'User',
+            select: [ 'displayName']
+        })
+        .populate({
+            path: "listMusic",
+            model: "Music"
+        });
         if(!playlistPublic)
         {
             if(req.isAuthenticated())
             {
                 try{
-                    const playlistPrivate = await Playlist.findOne({_id: req.params.id, ownerPlaylistID: req.user.user._id})
+                    const playlistPrivate = await Playlist.findOne({_id: req.params.id, ownerPlaylistID: req.user.user._id})         
+                    .populate({
+                        path: 'ownerPlaylistID',
+                        model: 'User',
+                        select: [ 'displayName']
+                    })        
+                    .populate({
+                        path: "listMusic",
+                        model: "Music"
+                    });
                     if(playlistPrivate!=null)
                     {
                         await Playlist.updateOne({_id: req.params.id}, { $inc: { view: 1 } })            
@@ -81,7 +99,11 @@ const getPlaylistFromCurrentUser = asyncHandler(async(req,res)=>{
     if(req.isAuthenticated())
     {
         try{
-            const playlist = await Playlist.find({ownerPlaylistID: req.user.user._id})
+            const playlist = await Playlist.find({ownerPlaylistID: req.user.user._id}).populate({
+                path: 'ownerPlaylistID',
+                model: 'User',
+                select: [ 'displayName']
+            })
             res.status(200).json({message: "Success", data: playlist, accessToken: req.user.accessToken})
         }
         catch(e)
@@ -183,7 +205,11 @@ const searchPublicMusicPlaylistByName =asyncHandler(async (req,res) =>{
         const playlist = await Playlist.find({ 
             playlistName: { $regex: playlistNameRegex },  
             privacyStatus: PlaylistTable.PLAYLIST_PRIVACY_PUBLIC}
-        );
+        ).populate({
+            path: 'ownerPlaylistID',
+            model: 'User',
+            select: [ 'displayName']
+        });
         res.status(200).json({message: "Success",data: playlist});
     }
     catch(e)
@@ -195,7 +221,11 @@ const getMostFamousPlaylist =asyncHandler(async(req,res) =>{
     try{
         const quantity = req.query.quantity || 20;
         const index = (req.query.index || 0)*quantity;
-        const playlist = await Playlist.find({privacyStatus: PlaylistTable.PLAYLIST_PRIVACY_PUBLIC})
+        const playlist = await Playlist.find({privacyStatus: PlaylistTable.PLAYLIST_PRIVACY_PUBLIC}).populate({
+            path: 'ownerPlaylistID',
+            model: 'User',
+            select: [ 'displayName']
+        })
         .sort({view: -1})
         .limit(quantity)
         .skip(index);

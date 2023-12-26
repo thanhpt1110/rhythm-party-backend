@@ -7,6 +7,7 @@ const playlistSchema = mongoose.Schema({
     },
     listMusic:{
         type: [mongoose.Schema.Types.ObjectId],
+        default: [],
         ref: 'Music'
     },
     avatarPlaylist:{
@@ -15,7 +16,8 @@ const playlistSchema = mongoose.Schema({
     },
     ownerPlaylistID:{
         type: mongoose.Schema.Types.ObjectId,
-        require: [true, "Please add your owner playlist id"]
+        require: [true, "Please add your owner playlist id"],
+        ref: 'User'
     },
     privacyStatus:{
         type: String,
