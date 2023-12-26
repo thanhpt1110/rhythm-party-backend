@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const PlaylistTable = require('../entity/PlaylistTable')
 const playlistSchema = mongoose.Schema({
-    playListName:{
+    playlistName:{
         type: String,
         required: [true, "Please add your playlist name"]
     },

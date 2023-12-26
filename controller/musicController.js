@@ -78,9 +78,7 @@ const uploadMusic = asyncHandler(async (req, res)=>{
         if(req.isAuthenticated())
         {
             try{
-            console.log("Create music")
             const {musicName, genre, author, lyrics, duration, description, url,imgUrl, releaseYear, musicPrivacyType} = req.body
-            console.log(req.body)
             if (!musicName && !genre && !author && !lyrics && !duration && !description && !releaseYear) {
                 res.status(400).json({ message: 'Missing required fields' });
                 return;
@@ -112,7 +110,6 @@ const uploadMusic = asyncHandler(async (req, res)=>{
                 musicPostOwnerID: req.user.user._id
             })
             res.status(200).json({message: "Success", data: music, accessToken: req.user.accessToken})
-            console.log("Create music success")
             }
             catch(ex)
             {
@@ -132,7 +129,6 @@ const updateMusicInformation = asyncHandler(async(req,res)=>{
         if(req.isAuthenticated())
         {
             const _id = req.params.id;
-            console.log(_id)
             const existedMusic = await Music.findOne({_id:_id});
             if(existedMusic)
             {
@@ -253,7 +249,6 @@ const getMusicCurrentUser = asyncHandler(async(req,res)=>{
         {
             try{
                 const result = await Music.find({musicPostOwnerID: req.user.user._id})
-                console.log(result);
                 res.status(200).json({message: "Success", data: result, accessToken: req.user.accessToken})   
             }
             catch(ex)
