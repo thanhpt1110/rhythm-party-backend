@@ -21,7 +21,7 @@ const getMusicByID = asyncHandler(async (req,res)=>{
             res.status(200).json({message: "Success", data: music})
         }
         else
-            res.status(404).json({message: "Music not existed", data: null})
+            res.sendStatus(404)
     }
     catch(e)
     {
@@ -152,18 +152,20 @@ const updateMusicInformation = asyncHandler(async(req,res)=>{
                         res.status(200).json(respone);
                     }
                     catch(e){
-                        res.sendStatus(500)
+                        res.status(500).json({message: "Server error"})
                     }
                 }
                 else
-                    res.sendStatus(401)
+                    res.status(401).json({message: "Unauthorize"});
             }
             else
-                res.sendStatus(404);
+                res.status(404).json({message: "Not found"});
         }
     }
     catch(e)
-    {res.sendStatus(500)}
+    {
+        res.status(500).json({message: "Server error"})
+    }
 })
 const updateMusicPrivacyStatus = asyncHandler( async(req,res)=>{
     try{
@@ -190,7 +192,7 @@ const updateMusicPrivacyStatus = asyncHandler( async(req,res)=>{
     }
     catch(e)
     {
-        return res.sendStatus(500);
+        return res.status(500).json({message: "Server error"});
     }
 })
 const updateMusicAuthorization = asyncHandler(async(req,res)=>{
@@ -216,7 +218,7 @@ const updateMusicAuthorization = asyncHandler(async(req,res)=>{
     }
     catch(e)
     {
-        res.sendStatus(500);
+        return res.status(500).json({message: "Server error"})            
     }
 })
 const getMusicUnauthentication = asyncHandler(async(req,res)=>{
@@ -237,10 +239,12 @@ const getMusicUnauthentication = asyncHandler(async(req,res)=>{
             }
         }
         else
-           return res.sendStatus(401)
+            res.status(401).json({message: "Unauthorize"})
+
     }
     catch(e){
-        return res.sendStatus(500)
+        return res.status(500).json({message: "Server error"})            
+
     }
 })
 const getMusicCurrentUser = asyncHandler(async(req,res)=>{
@@ -257,12 +261,12 @@ const getMusicCurrentUser = asyncHandler(async(req,res)=>{
             }
         }
         else{
-            res.sendStatus(401);
+            res.status(401).json({message: "Unauthorize"})
         }
     }
     catch(e)
     {
-        res.sendStatus(500)
+        return res.status(500).json({message: "Server error"})            
     }
 })
 const listenMusic = asyncHandler(async(req,res)=>{
@@ -277,7 +281,7 @@ const listenMusic = asyncHandler(async(req,res)=>{
     }
     catch(e)
     {
-        res.sendStatus(500);
+        return res.status(500).json({message: "Server error"})            
     }
 })
 const musicMessageUpload = asyncHandler(async(req,res)=>{
@@ -299,7 +303,7 @@ const musicMessageUpload = asyncHandler(async(req,res)=>{
             .exec();
             const music = await Music.findById(req.params.id);
             if (!music) {
-                res.sendStatus(404)
+                res.status(404).json({message: "Music not existed", data: null})
                 return;
             }
             music.messages.push(newMessage._id);
@@ -307,11 +311,12 @@ const musicMessageUpload = asyncHandler(async(req,res)=>{
             return res.status(200).json({message: "Success", data: Message});
         }
         else
-            return res.sendStatus(401)
+            return  res.status(401).json({message: "Unauthorize"})
     }
     catch(e)
     {
-        return res.sendStatus(500);
+        return res.status(500).json({message: "Server error"})            
+
     }
 })
 module.exports = {listenMusic,

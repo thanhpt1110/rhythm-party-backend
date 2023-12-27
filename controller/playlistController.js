@@ -17,7 +17,13 @@ const createPlaylist = asyncHandler(async(req,res)=>{
                     privacyStatus: privacyStatus,
                     ownerPlaylistID: req.user.user._id
                 })
-                res.status(200).json({message: "Create playlist success", data: playlist, accessToken: req.user.accessToken})
+                const newPlaylist = await Playlist.findById(playlist._id)        
+                .populate({
+                    path: 'ownerPlaylistID',
+                    model: 'User',
+                    select: [ 'displayName']
+                })
+                res.status(200).json({message: "Create playlist success", data: newPlaylist, accessToken: req.user.accessToken})
             }
             catch(Exception)
             {
@@ -68,31 +74,31 @@ const getPlaylistByID = asyncHandler(async(req,res)=>{
                         return;
                     }
                     else{
-                        res.sendStatus(404)
+                        res.status(404).json({message: "playlist not found"})
                         return;
                     }
                 }
                 catch(e)
                 {
-                    res.sendStatus(500)
+                    return res.status(500).json({message: "Server error"})
                 }
             }
             else
             {
-                res.sendStatus(404)
+                res.status(404).json({message: "playlist not found"})
                 return;
             }
         }
         else
         {
             await Playlist.updateOne({_id: req.params.id}, { $inc: { view: 1 } })
-            res.status(200).json({message: "Success", data: playlistPublic})
+            return res.status(200).json({message: "Success", data: playlistPublic})
         }
     }
     catch(e)
     {
         console.log(e)
-        res.sendStatus(500)
+        return res.status(500).json({message: "Server error"})
     }
 })
 const getPlaylistFromCurrentUser = asyncHandler(async(req,res)=>{
@@ -108,11 +114,11 @@ const getPlaylistFromCurrentUser = asyncHandler(async(req,res)=>{
         }
         catch(e)
         {
-            res.sendStatus(500)
+            res.status(500).json({message: "Server error"})
         }
     }
     else{
-        res.sendStatus(401)
+        res.status(401).json({message: "Unauthorized"});
     }
 })
 const updatePlaylistMusicInfomation = asyncHandler(async(req,res) =>{
@@ -121,21 +127,21 @@ const updatePlaylistMusicInfomation = asyncHandler(async(req,res) =>{
     {
         try{
             const prevPlaylist = await Playlist.findById(req.params.id);
-            const {playlistName, privacyStatus, description} = req.body
-            
+            const {playlistName, privacyStatus, description, avatarPlaylist} = req.body
             const updateData = {playlistName: playlistName? playlistName: prevPlaylist.playlistName,
                  privacyStatus: privacyStatus ? privacyStatus: prevPlaylist.privacyStatus, 
-                 description: description ? description: prevPlaylist.description}
-            const playlist = await Playlist.updateData({_id: req.params.id},updateData)
-            res.status(200).json({message: "Success", data: playlist, accessToken: req.user.accessToken})
+                 description: description ? description: prevPlaylist.description,
+                 avatarPlaylist: avatarPlaylist ? avatarPlaylist: prevPlaylist.avatarPlaylist}
+            const playlist = await Playlist.findOneAndUpdate({_id: req.params.id},updateData, {new: true})
+            return res.status(200).json({message: "Success", data: playlist, accessToken: req.user.accessToken})
         }
         catch(e)
         {
-            res.sendStatus(500)
+            res.status(500).json({message: "Server error"})
         }
     }
     else{
-        res.sendStatus(401)
+        res.status(401).json({message: "Unauthorized"});
     }
 })
 const addNewSongToPlaylist = asyncHandler(async(req,res)=>{
@@ -156,13 +162,13 @@ const addNewSongToPlaylist = asyncHandler(async(req,res)=>{
 
         }
         else{
-            return res.sendStatus(401)
+            res.status(401).json({message: "Unauthorized"});
         }
     }
     catch(e)
     {
     console.log(e);
-      return res.sendStatus(500)
+      return res.status(500).json({message: "Server error"});
     }
 })
 const removeSongFromPlaylist = asyncHandler(async(req,res)=>{
@@ -190,12 +196,13 @@ const removeSongFromPlaylist = asyncHandler(async(req,res)=>{
             }
         }
         else{
-            return res.sendStatus(401)
+            return res.status(401).json({message: "Unauthorize"})
         }
     }
     catch(e)
     {
-      return res.sendStatus(500)
+        return res.status(500).json({message: "Server error"});
+
     }
 })
 const searchPublicMusicPlaylistByName =asyncHandler(async (req,res) =>{
