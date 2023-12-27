@@ -319,8 +319,41 @@ const musicMessageUpload = asyncHandler(async(req,res)=>{
 
     }
 })
+const deleteMusicById = asyncHandler(async(req,res) =>{
+    try{
+        if(req.isAuthenticated())
+        {
+            const _id = req.params.id;
+            const existedMusic = await Music.findOne({_id:_id});
+            console.log(existedMusic);
+            if(existedMusic)
+            {
+                if(existedMusic.musicPostOwnerID !== req.user.user._id)
+                {
+                    try 
+                    {                
+                        const result =  await Music.deleteOne({_id:_id});
+                        const respone = {message: "Success", data: result} 
+                        res.status(200).json(respone);
+                    }
+                    catch(e){
+                        res.status(500).json({message: "Server error"})
+                    }
+                }
+                else
+                    res.status(401).json({message: "Unauthorize"});
+            }
+            else
+                res.status(404).json({message: "Not found"});
+        }
+    }
+    catch(e)
+    {
+        res.status(500).json({message: "Server error"})
+    }
+})
 module.exports = {listenMusic,
     updateMusicInformation,getMusicByID,
     getTopMusic,findMusicByNamePublic,uploadMusic,
     updateMusicPrivacyStatus,updateMusicAuthorization,
-    getMusicUnauthentication,getMusicCurrentUser,musicMessageUpload}
+    getMusicUnauthentication,getMusicCurrentUser,musicMessageUpload,deleteMusicById}

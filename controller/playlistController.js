@@ -243,7 +243,40 @@ const getMostFamousPlaylist =asyncHandler(async(req,res) =>{
         res.sendStatus(500)
     }
 })
+const deletePlaylistById = asyncHandler(async(req,res) =>{
+    try{
+        if(req.isAuthenticated())
+        {
+            const _id = req.params.id;
+            const existedPlaylist = await Playlist.findOne({_id:_id});
+            console.log(existedPlaylist);
+            if(existedPlaylist)
+            {
+                if(existedPlaylist.ownerPlaylistID !== req.user.user._id)
+                {
+                    try 
+                    {                
+                        const result =  await Playlist.deleteOne({_id:_id});
+                        const respone = {message: "Success", data: result} 
+                        res.status(200).json(respone);
+                    }
+                    catch(e){
+                        res.status(500).json({message: "Server error"})
+                    }
+                }
+                else
+                    res.status(401).json({message: "Unauthorize"});
+            }
+            else
+                res.status(404).json({message: "Not found"});
+        }
+    }
+    catch(e)
+    {
+        res.status(500).json({message: "Server error"})
+    }
+})
 module.exports = {createPlaylist,
     getPlaylistByID,getPlaylistFromCurrentUser,
     updatePlaylistMusicInfomation,searchPublicMusicPlaylistByName,
-    getMostFamousPlaylist,addNewSongToPlaylist, removeSongFromPlaylist}
+    getMostFamousPlaylist,addNewSongToPlaylist, removeSongFromPlaylist,deletePlaylistById}
