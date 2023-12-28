@@ -79,8 +79,8 @@ const updateUserById = asyncHandler(async(req,res)=>{
 })
 const createNewAccount = asyncHandler(async(req,res) =>{
     try{
-        const {username, email, password, displayName} = req.body;
-        const user = await User.findOne({username: username})
+        const { email, password, displayName} = req.body;
+        const user = await User.findOne({username: email})
         if(user!==null)
         {
             res.status(409).json({isSuccess: false, message: "Account already existed"})
@@ -90,7 +90,7 @@ const createNewAccount = asyncHandler(async(req,res) =>{
             const hashedPassword = await bcrypt.hash(password,10)
             const user = await User.create({
                 displayName: displayName,
-                username: username,
+                username: email,
                 password: hashedPassword,
                 email: email,
                 avatar: null,
