@@ -38,7 +38,7 @@ const findMusicByNamePublic = asyncHandler(async (req,res)=>{
     try{
         const musicnameRegex = new RegExp('^' + musicname,'i');
         const music = await Music.find({ 
-            musicName: { $regex: musicnameRegex },  
+            musicName: { $regex: musicname },  
             musicPrivacyType: MusicTable.MUSIC_PRIVACY_PUBLIC,
             musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_AUTHORIZE}
         )          
