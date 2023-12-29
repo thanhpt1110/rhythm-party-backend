@@ -36,9 +36,9 @@ const findMusicByNamePublic = asyncHandler(async (req,res)=>{
     const desc = req.query.desc || -1;
     // Sử dụng biểu thức chính quy để tạo điều kiện tìm kiếm
     try{
-        const musicnameRegex = new RegExp('^' + musicname,'i');
+        const musicnameRegex = new RegExp( musicname,'i'); 
         const music = await Music.find({ 
-            musicName: { $regex: musicname },  
+            musicName: { $regex: musicnameRegex },  
             musicPrivacyType: MusicTable.MUSIC_PRIVACY_PUBLIC,
             musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_AUTHORIZE}
         )          

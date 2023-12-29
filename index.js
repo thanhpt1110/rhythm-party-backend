@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express')
 const mongoose = require('mongoose')
 const app = express()
+const adminApp= express()
 const url = process.env.CONNECTION_STRING
 const port = process.env.PORT
 const passport = require('passport')

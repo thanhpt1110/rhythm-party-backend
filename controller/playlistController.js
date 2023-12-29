@@ -208,7 +208,7 @@ const removeSongFromPlaylist = asyncHandler(async(req,res)=>{
 const searchPublicMusicPlaylistByName =asyncHandler(async (req,res) =>{
     const playlistName = req.query.playlist_name
     try{
-        const playlistNameRegex = new RegExp('^' + playlistName,'i');
+        const playlistNameRegex = new RegExp(playlistName,'i');
         const playlist = await Playlist.find({ 
             playlistName: { $regex: playlistNameRegex },  
             privacyStatus: PlaylistTable.PLAYLIST_PRIVACY_PUBLIC}
