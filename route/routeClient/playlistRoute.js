@@ -1,11 +1,11 @@
 const express = require('express')
 const router = express.Router()
-const {authenticateToken} = require('../authentication/jwtAuth')
+const {authenticateToken} = require('../../authentication/jwtAuth')
 const {createPlaylist,getPlaylistByID
     ,getPlaylistFromCurrentUser
     ,updatePlaylistMusicInfomation
     ,searchPublicMusicPlaylistByName
-    ,getMostFamousPlaylist,addNewSongToPlaylist, removeSongFromPlaylist, deletePlaylistById} = require('../controller/playlistController')
+    ,getMostFamousPlaylist,addNewSongToPlaylist, removeSongFromPlaylist, deletePlaylistById} = require('../../controller/controllerClient/playlistClientController')
 router.route('/').post(authenticateToken,createPlaylist)
 .get(authenticateToken,getPlaylistFromCurrentUser)
 router.route('/search').get(searchPublicMusicPlaylistByName)

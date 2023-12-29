@@ -1,5 +1,5 @@
 require('dotenv').config();
-const Genre = require('../model/GenreModel')
+const Genre = require('../../model/GenreModel')
 const asyncHandler = require('express-async-handler')
 
 const getMostFamousGerne = asyncHandler(async(req,res)=>{

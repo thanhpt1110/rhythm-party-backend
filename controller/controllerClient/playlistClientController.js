@@ -1,6 +1,6 @@
 const asyncHandler = require('express-async-handler')
-const Playlist = require('../model/PlaylistModel')
-const PlaylistTable = require('../entity/PlaylistTable')
+const Playlist = require('../../model/PlaylistModel')
+const PlaylistTable = require('../../entity/PlaylistTable')
 const createPlaylist = asyncHandler(async(req,res)=>{
     try{
         if(req.isAuthenticated())

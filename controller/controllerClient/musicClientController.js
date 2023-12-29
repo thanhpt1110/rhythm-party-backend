@@ -1,10 +1,10 @@
-const Music = require('../model/MusicModel')
-const MusicGenre = require('../model/GenreModel')
+const Music = require('../../model/MusicModel')
+const MusicGenre = require('../../model/GenreModel')
 const asyncHandler = require('express-async-handler')
-const MusicTable = require('../entity/MusicTable')
-const UserTable = require('../entity/UserTable')
-const MusicMessage = require('../model/MessageModel')
-const MessageMusic = require('../model/MessageModel')
+const MusicTable = require('../../entity/MusicTable')
+const UserTable = require('../../entity/UserTable')
+const MusicMessage = require('../../model/MessageModel')
+const MessageMusic = require('../../model/MessageModel')
 const getMusicByID = asyncHandler(async (req,res)=>{
     try{
         const music = await Music.findById(req.params.id).populate({
@@ -30,15 +30,18 @@ const getMusicByID = asyncHandler(async (req,res)=>{
 })
 const findMusicByNamePublic = asyncHandler(async (req,res)=>{
     // Lấy giá trị từ query parameter 'search'
-    const musicname = req.query.music_name;
+    const searchMusic = req.query.music_name;
     const quantity = req.query.quantity || 50;
     const index = req.query.index || 0;
     const desc = req.query.desc || -1;
     // Sử dụng biểu thức chính quy để tạo điều kiện tìm kiếm
     try{
-        const musicnameRegex = new RegExp( musicname,'i'); 
+        const searchMusicRegex = new RegExp( searchMusic,'i'); 
         const music = await Music.find({ 
-            musicName: { $regex: musicnameRegex },  
+            $or: [
+                { musicName: { $regex: searchMusicRegex } }, // i là không phân biệt chữ hoa chữ thường
+                { author: { $regex: searchMusicRegex } },
+              ],  
             musicPrivacyType: MusicTable.MUSIC_PRIVACY_PUBLIC,
             musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_AUTHORIZE}
         )          
@@ -49,6 +52,7 @@ const findMusicByNamePublic = asyncHandler(async (req,res)=>{
     }
     catch(e)
     {
+        console.log(e)
         res.status(500).json({message: "Server error"})
     }
 })
@@ -136,17 +140,18 @@ const updateMusicInformation = asyncHandler(async(req,res)=>{
                 {
                     try 
                     {                
-                        const {musicName, genre, author, lyrics, duration, description, url,imgUrl, releaseYear} = req.body ;
+                        const {musicName, genre, author,musicPrivacyType, lyrics, duration, description, url,imgUrl, releaseYear} = req.body ;
                         const music = {           
                         musicName: musicName? musicName: existedMusic.musicName,
                         genre: genre ? genre :existedMusic.genre,
                         author: author ? author: existedMusic.author,
                         lyrics: lyrics ? lyrics: existedMusic.lyrics,
                         duration: duration ? duration: existedMusic.duration,
+                        musicPrivacyType: musicPrivacyType ? musicPrivacyType: existedMusic.musicPrivacyType,
                         description: description ? description: existedMusic.description,
                         url: url ? url : existedMusic.url,
                         imgUrl: imgUrl ? imgUrl : existedMusic.imgUrl,
-                        releaseYear: releaseYear} 
+                        releaseYear: releaseYear ? releaseYear: existedMusic.releaseYear} 
                         const result = await Music.findOneAndUpdate({ _id: _id }, { $set: music }, {new:true});
                         const respone = {message: "Success", data: result} 
                         res.status(200).json(respone);
@@ -195,58 +200,7 @@ const updateMusicPrivacyStatus = asyncHandler( async(req,res)=>{
         return res.status(500).json({message: "Server error"});
     }
 })
-const updateMusicAuthorization = asyncHandler(async(req,res)=>{
-    try{
-        if(req.isAuthenticated())
-        {
-            if(req.user.role!== UserTable.ROLE_ADMIN)
-                res.status(401).json({message: "Unauthorize"})
-            else{
-                try{
-                    const { _id, musicAuthorize} = req.body;
-                    const result = await Music.updateOne({ _id: _id }, { $set: { musicAuthorize: musicAuthorize} }); 
-                    return res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
-                }
-                catch(ex)
-                {
-                   return res.status(500).json({message: "Server error", error: ex})            
-                }
-            }
-        }
-        else
-            res.status(401).json({message: "Unauthorize"})
-    }
-    catch(e)
-    {
-        return res.status(500).json({message: "Server error"})            
-    }
-})
-const getMusicUnauthentication = asyncHandler(async(req,res)=>{
-    try{
-        if(req.isAuthenticated())
-        {
-            if(req.user.role!== UserTable.ROLE_ADMIN)
-            res.status(401).json({message: "Unauthorize"})
-            else{
-                try{
-                    const result = await Music.find({musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_UNAUTHORIZE})
-                    return res.status(200).json({message: "Update success", data: result, accessToken: req.user.accessToken})   
-                }
-                catch(ex)
-                {
-                   return res.status(500).json({message: "Server error", error: ex})            
-                }
-            }
-        }
-        else
-            res.status(401).json({message: "Unauthorize"})
 
-    }
-    catch(e){
-        return res.status(500).json({message: "Server error"})            
-
-    }
-})
 const getMusicCurrentUser = asyncHandler(async(req,res)=>{
     try{
         if(req.isAuthenticated())
@@ -355,5 +309,4 @@ const deleteMusicById = asyncHandler(async(req,res) =>{
 module.exports = {listenMusic,
     updateMusicInformation,getMusicByID,
     getTopMusic,findMusicByNamePublic,uploadMusic,
-    updateMusicPrivacyStatus,updateMusicAuthorization,
-    getMusicUnauthentication,getMusicCurrentUser,musicMessageUpload,deleteMusicById}
+    updateMusicPrivacyStatus,getMusicCurrentUser,musicMessageUpload,deleteMusicById}

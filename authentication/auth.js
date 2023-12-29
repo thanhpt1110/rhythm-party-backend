@@ -8,7 +8,10 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const {generateAccessToken} = require('../authentication/jwtAuth.js')
 require('dotenv').config();
-passport.use(new GoogleStrategy({
+const authClientWeb = new passport.Passport();
+const authAdminWeb = new passport.Passport();
+
+authClientWeb.use(new GoogleStrategy({
     clientID:     process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: `http://localhost:${process.env.PORT}/auth/google/callback`,
@@ -72,7 +75,7 @@ passport.use(new GoogleStrategy({
     }
   })
 ));
-passport.use(UserTable.ROLE_USER,new LocalStrategy(
+authClientWeb.use(UserTable.ROLE_USER,new LocalStrategy(
     asyncHandler( async function(username, password, done) {
         try{
             const existingUser = await User.findOne({username: username, accountType: UserTable.TYPE_LOCAL_ACCOUNT}); 
@@ -105,7 +108,7 @@ passport.use(UserTable.ROLE_USER,new LocalStrategy(
         }
     }   
   )));
-  passport.use(UserTable.ROLE_ADMIN,new LocalStrategy(
+  authAdminWeb.use(UserTable.ROLE_ADMIN,new LocalStrategy(
     asyncHandler( async function(username, password, done) {
         try{
             const existingUser = await User.findOne({username: username, accountType: UserTable.TYPE_LOCAL_ACCOUNT,role: UserTable.ROLE_ADMIN});  
@@ -138,9 +141,16 @@ passport.use(UserTable.ROLE_USER,new LocalStrategy(
         }
     }
   )));
-passport.serializeUser((user,done)=>{
+authClientWeb.serializeUser((user,done)=>{
     done(null,user)
 })
-passport.deserializeUser((user,done)=>{
+authClientWeb.deserializeUser((user,done)=>{
     done(null,user)
 })
+authAdminWeb.serializeUser((user,done)=>{
+    done(null,user)
+})
+authAdminWeb.deserializeUser((user,done)=>{
+    done(null,user)
+})
+module.exports = {authAdminWeb, authClientWeb}

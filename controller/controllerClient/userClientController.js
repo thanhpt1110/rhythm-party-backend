@@ -1,8 +1,8 @@
 require('dotenv').config();
-const User = require('../model/UserModel')
+const User = require('../../model/UserModel')
 const asyncHandler = require('express-async-handler')
 const bcrypt = require('bcrypt')
-const UserTable = require('../entity/UserTable')
+const UserTable = require('../../entity/UserTable')
 const getYourProfileUser = asyncHandler (async(req,res)=>{
     if(req.isAuthenticated())
     {

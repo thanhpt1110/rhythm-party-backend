@@ -1,5 +1,5 @@
-const Room = require('../model/RoomModel')
-const RoomTable = require('../entity/RoomTable')
+const Room = require('../../model/RoomModel')
+const RoomTable = require('../../entity/RoomTable')
 const asyncHandler = require('express-async-handler')
 const getRoomByID =asyncHandler(async (req,res) =>{
     try{
