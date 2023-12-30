@@ -5,7 +5,7 @@ const getAllUser = asyncHandler(async(req,res) =>{
     try{
         if(req.isAuthenticated())
         {
-            const userFieldSelected = [_id,displayName, gender, email, isAvailable]
+            const userFieldSelected = ["_id","displayName", "gender", "email", "isAvailable"]
             const quantity = req.query.quantity || 50
             const index = (req.query.index || 0) * quantity
             const user = await User.find({role: UserTable.ROLE_USER})
@@ -29,7 +29,7 @@ const searchUser = asyncHandler(async(req,res)=>{
     try{
         if(req.isAuthenticated())
         {
-            const userFieldSelected = [displayName, gender, email, isAvailable]
+            const userFieldSelected = ["_id","displayName", "gender", "email", "isAvailable"]
             const userInputSearch = req.query.user_input || '';
             const quantity = req.query.quantity || 50
             const searhUsercRegex = new RegExp(userInputSearch,'i'); 
@@ -60,7 +60,7 @@ const updateUserAccount = asyncHandler(async(req,res)=>{
 
                 try {
                     const id = req.params.id;
-                    const {displayName, gender, password, isAvailable} = req.body;
+                    const {displayName, gender,birthday, password, isAvailable} = req.body;
                     const hashedPassword = password ? await bcrypt.hash(password,10) : null
                     const user = await User.findById(id);
                     if (!user) {
@@ -88,6 +88,7 @@ const updateUserAccount = asyncHandler(async(req,res)=>{
                     }
                     return res.status(200).json({message: "success", data: userData});
                 } catch (err) {
+                    console.log(err)
                     res.status(500).json({ message: "Server error" });
                 }
         }
@@ -98,6 +99,7 @@ const updateUserAccount = asyncHandler(async(req,res)=>{
     }
     catch(e)
     {
+        console.log(e);
         res.sendStatus(500)
     }
     
@@ -106,7 +108,7 @@ const getUserByID = asyncHandler(async(req,res)=>{
     try{
         if(req.isAuthenticated())
         {
-            const user = await User.findById(req.params.id);
+            const user = await User.findById(req.params.id).select('-refreshToken');
             if(user !==null && user !==undefined)
                 res.status(200).json({message:"Success", data: user})
             else

@@ -85,8 +85,7 @@ adminApp.use((req, res, next) => {
 adminApp.use('/auth',require('./route/routeAdmin/authAdminRoute.js'))
 adminApp.use('/api/user',require('./route/routeAdmin/userAdminRoute.js'))
 adminApp.use('/api/music',require('./route/routeAdmin/musicAdminRoute.js'))
-adminApp.use('/api/auth',require('./route/routeAdmin/authAdminRoute.js'))
-module.exports = {adminApp}
+adminApp.use('/api/playlist',require('./route/routeAdmin/playlistAdminRoute.js'))
 const adminServer = http.createServer(adminApp);
 adminServer.listen(ADMIN_PORT, () => {
     console.log(`Admin app server run on port ${ADMIN_PORT}`);

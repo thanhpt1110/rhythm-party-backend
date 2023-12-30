@@ -5,6 +5,7 @@ const MusicTable = require('../../entity/MusicTable')
 const UserTable = require('../../entity/UserTable')
 const MusicMessage = require('../../model/MessageModel')
 const MessageMusic = require('../../model/MessageModel')
+const { deletefile } = require('../../ultis/Firebase')
 const getMusicByID = asyncHandler(async (req,res)=>{
     try{
         const music = await Music.findById(req.params.id).populate({
@@ -284,14 +285,32 @@ const deleteMusicById = asyncHandler(async(req,res) =>{
             {
                 if(existedMusic.musicPostOwnerID !== req.user.user._id)
                 {
-                    try 
-                    {                
-                        const result =  await Music.deleteOne({_id:_id});
-                        const respone = {message: "Success", data: result} 
-                        res.status(200).json(respone);
+                    try{
+                        await deletefile("music_avatar","png", existedMusic._id);
                     }
-                    catch(e){
-                        res.status(500).json({message: "Server error"})
+                    catch(e)
+                    {
+                        console.log(e);
+                    }
+                    finally{
+                        try{
+                            await deletefile("music","mp3", existedMusic._id);
+                        }
+                        catch(e)
+                        {
+                            console.log(e);
+                        }
+                        finally{
+                            try 
+                            {                
+                                const result =  await Music.deleteOne({_id:_id});
+                                const respone = {message: "Success", data: result} 
+                                res.status(200).json(respone);
+                            }
+                            catch(e){
+                                res.status(500).json({message: "Server error"})
+                            }  
+                        }
                     }
                 }
                 else
