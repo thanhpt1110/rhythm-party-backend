@@ -34,7 +34,15 @@ const RoomSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         default: null,
         ref: 'Music'
-    }
+    },
+    currentTime:{
+        type: Number,
+        default: 0,
+    },
+    messages: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Message'
+    }]
 },  
 {
     timestamps: true,

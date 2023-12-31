@@ -49,6 +49,7 @@ clientApp.use('/api/user',require('./route/routeClient/userRoute.js'))
 clientApp.use('/api/music',require('./route/routeClient/musicRoute.js'))
 clientApp.use('/api/genre',require('./route/routeClient/genreRoute.js'))
 clientApp.use('/api/playlist',require('./route/routeClient/playlistRoute.js'))
+clientApp.use('/api/room',require('./route/routeClient/roomRoute.js'))
 const server = http.createServer(clientApp);
 const io = new Server(server,{
     cors:{
