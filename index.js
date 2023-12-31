@@ -1,46 +1,20 @@
 require('dotenv').config();
-const express = require('express')
 const mongoose = require('mongoose')
-const app = express()
-const url = process.env.CONNECTION_STRING
-const port = process.env.PORT
-const passport = require('passport')
-const session = require('express-session')
+const URL = process.env.CONNECTION_STRING
+const PORT = process.env.PORT
+const ADMIN_PORT = process.env.ADMIN_PORT
 const http = require('http');
 const {Server} = require('socket.io')
-const cors = require('cors')
-const errorHandler = require('./middleware/errorHandler.js')
+const express = require('express')
 const {socketInit} = require('./middleware/socketIO.js')
-require('./authentication/auth.js')
-app.use(cors({
-    origin: 'http://localhost:3000',
-    methods: "GET,POST,PUT,DELETE",
-    credentials: true
-}))
-app.use(express.json());
-app.use(errorHandler);
-app.use(session({
-    secret: '2',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false, maxAge: 60*60*1000 }
-  }))
-app.use(passport.initialize())
-app.use(passport.session())
-app.use((req, res, next) => {
-    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-    res.header('Expires', '-1');
-    res.header('Pragma', 'no-cache');
-    next();
-  });
-app.use('/auth',require('./route/authRoute.js'))
-app.use('/api/user',require('./route/userRoute.js'))
-app.use('/api/music',require('./route/musicRoute.js'))
-app.use('/api/genre',require('./route/genreRoute.js'))
-app.use('/api/playlist',require('./route/playlistRoute.js'))
+const cors = require('cors')
+const session = require('express-session')
+const errorHandler = require('./middleware/errorHandler.js')
+const secretSessionKey = process.envSECRET_SESSION_KEY || "Hello world"
+const {authClientWeb, authAdminWeb} = require('./authentication/auth.js')
 const connect = async ()=>{
     try{
-        await mongoose.connect(url)
+        await mongoose.connect(URL)
         console.log('Connect to mongoDB')
     }
     catch(error){
@@ -48,7 +22,34 @@ const connect = async ()=>{
     }   
 }
 connect();
-const server = http.createServer(app);
+const clientApp = express()
+clientApp.use(cors({
+    origin: 'http://localhost:3000',
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true
+}))
+clientApp.use(express.json());
+clientApp.use(errorHandler);
+clientApp.use(session({
+    secret: secretSessionKey,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false, maxAge: 60*60*1000 }
+  }))
+clientApp.use(authClientWeb.initialize())
+clientApp.use(authClientWeb.session())
+clientApp.use((req, res, next) => {
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
+    next();
+});
+clientApp.use('/auth',require('./route/routeClient/authClientRoute.js'))
+clientApp.use('/api/user',require('./route/routeClient/userRoute.js'))
+clientApp.use('/api/music',require('./route/routeClient/musicRoute.js'))
+clientApp.use('/api/genre',require('./route/routeClient/genreRoute.js'))
+clientApp.use('/api/playlist',require('./route/routeClient/playlistRoute.js'))
+const server = http.createServer(clientApp);
 const io = new Server(server,{
     cors:{
         origin: 'http://localhost:3000',
@@ -56,4 +57,36 @@ const io = new Server(server,{
     }
 })
 socketInit(io)
-server.listen(port,()=>{console.log(`server run on port ${port}`)})
+server.listen(PORT,()=>{console.log(`server run on port ${PORT}`)})
+// -----------------------------------------
+// Admin app
+const adminApp= express()
+adminApp.use(cors({
+    origin: 'http://localhost:3001',
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true
+}))
+adminApp.use(express.json());
+adminApp.use(errorHandler);
+adminApp.use(session({
+    secret: secretSessionKey,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false, maxAge: 60*60*1000 }
+  }))
+adminApp.use(authAdminWeb.initialize())
+adminApp.use(authAdminWeb.session())
+adminApp.use((req, res, next) => {
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
+    next();
+  });
+adminApp.use('/auth',require('./route/routeAdmin/authAdminRoute.js'))
+adminApp.use('/api/user',require('./route/routeAdmin/userAdminRoute.js'))
+adminApp.use('/api/music',require('./route/routeAdmin/musicAdminRoute.js'))
+adminApp.use('/api/playlist',require('./route/routeAdmin/playlistAdminRoute.js'))
+const adminServer = http.createServer(adminApp);
+adminServer.listen(ADMIN_PORT, () => {
+    console.log(`Admin app server run on port ${ADMIN_PORT}`);
+});

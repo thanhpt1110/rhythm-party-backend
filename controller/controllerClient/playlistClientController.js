@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler')
-const Playlist = require('../model/PlaylistModel')
-const PlaylistTable = require('../entity/PlaylistTable')
+const Playlist = require('../../model/PlaylistModel')
+const PlaylistTable = require('../../entity/PlaylistTable')
+const { deletefile } = require('../../ultis/Firebase')
 const createPlaylist = asyncHandler(async(req,res)=>{
     try{
         if(req.isAuthenticated())
@@ -202,13 +203,12 @@ const removeSongFromPlaylist = asyncHandler(async(req,res)=>{
     catch(e)
     {
         return res.status(500).json({message: "Server error"});
-
     }
 })
 const searchPublicMusicPlaylistByName =asyncHandler(async (req,res) =>{
     const playlistName = req.query.playlist_name
     try{
-        const playlistNameRegex = new RegExp('^' + playlistName,'i');
+        const playlistNameRegex = new RegExp(playlistName,'i');
         const playlist = await Playlist.find({ 
             playlistName: { $regex: playlistNameRegex },  
             privacyStatus: PlaylistTable.PLAYLIST_PRIVACY_PUBLIC}
@@ -254,14 +254,24 @@ const deletePlaylistById = asyncHandler(async(req,res) =>{
             {
                 if(existedPlaylist.ownerPlaylistID !== req.user.user._id)
                 {
-                    try 
-                    {                
-                        const result =  await Playlist.deleteOne({_id:_id});
-                        const respone = {message: "Success", data: result} 
-                        res.status(200).json(respone);
+                    try{
+                        if(existedPlaylist.avatarPlaylist)
+                            await deletefile("playlist_avatar","png", existedPlaylist._id)
                     }
-                    catch(e){
-                        res.status(500).json({message: "Server error"})
+                    catch(e)
+                    {
+                        console.log(e);
+                    }
+                    finally{
+                        try 
+                        {                
+                            const result =  await Playlist.deleteOne({_id:_id});
+                            const respone = {message: "Success", data: result} 
+                            res.status(200).json(respone);
+                        }
+                        catch(e){
+                            res.status(500).json({message: "Server error"})
+                        }
                     }
                 }
                 else

@@ -1,9 +1,9 @@
 const {getYourProfileUser,createAdminAccount, getUserByID,updateUserById
     , createNewAccount
-    ,searchUserByNameAdmin,getListUser} = require('../controller/userController')
+    ,searchUserByNameAdmin,getListUser} = require('../../controller/controllerClient/userClientController')
 const express = require('express')
 const router = express.Router()
-const {authenticateToken} = require('../authentication/jwtAuth')
+const {authenticateToken} = require('../../authentication/jwtAuth')
 router.route('/profile').get(authenticateToken,getYourProfileUser);
 router.route('/admin-search').get(authenticateToken,searchUserByNameAdmin)
 router.route('/admin').get(authenticateToken,getListUser).post(authenticateToken,createAdminAccount);
