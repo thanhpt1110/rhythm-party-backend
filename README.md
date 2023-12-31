@@ -18,7 +18,6 @@ This repository serves as the backend for Rhythm Party. This is built using Node
     - CRUD Artist.
     - CRUD Room.
     - CRUD User.
-    - Process user feedback.
 
 ## Technology Stack
 - Backend:
