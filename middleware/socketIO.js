@@ -1,3 +1,5 @@
+const asyncHandler = require('express-async-handler')
+
 const socketInit = (io) => {
     io.on("connection", (socket) =>{
     console.log(`User connected: ${socket.id}`);
@@ -10,16 +12,46 @@ const socketInit = (io) => {
         console.log(`User with id: ${socket.id} leave music ${musicId}`)
     })
     socket.on('join_room', (roomId) =>{
-        socket.join("room"+roomId)
-        const roomSize = io.sockets.adapter.rooms.get("room"+roomId).size;
-        console.log(`User with id: ${socket.id} joined room ${roomId} with ${roomSize} people`)
-        io.to("room"+roomId).emit('update-people-in-room', roomSize);
+        try{
+            socket.join("room"+roomId)
+            const roomSize = io.sockets.adapter.rooms.get("room"+roomId).size;
+            console.log(`User with id: ${socket.id} joined room ${roomId} with ${roomSize} people`)
+            io.to("room"+roomId).emit('update-people-in-room', roomSize);
+        }
+        catch(e)
+        {
+            console.log(e)
+        }
     })
-    socket.on('leave_room', (roomId) =>{
-        socket.leave("room"+roomId);
-        console.log(`User with id: ${socket.id} leave room ${roomId}`)
-    })
+    socket.on('leave_room', asyncHandler(async(roomId) =>{
+        try{
+            if (socket.rooms.has("room" + roomId)) {
+            socket.leave("room"+roomId);
+            const roomSize = io.sockets.adapter.rooms.get("room" + roomId)?.size || 0;
+            console.log(`User with id: ${socket.id} leaved room ${roomId} with ${roomSize} people`)
+             socket.to("room"+roomId).emit('update-people-in-room', roomSize);
+            }
+        }
+        catch(e)
+        {
+            console.log(e);
+        }
+    }))
     socket.on('disconnect', () =>{
+        try{
+            const rooms = Array.from(socket.rooms);
+            // Rời khỏi tất cả các phòng mà người dùng đang tham gia
+            rooms.forEach(room => {
+                socket.leave(room);
+                const roomSize = io.sockets.adapter.rooms.get(room).size;
+                console.log(`User with id: ${socket.id} left room ${room} with ${roomSize} people`);
+                io.to(room).emit('update-people-in-room', roomSize);
+            });
+        }
+        catch(e)
+        {
+            console.log(e)
+        }
         console.log('User disconnected ', socket.id)
     })
     socket.on("send_message_music", (data) => {
