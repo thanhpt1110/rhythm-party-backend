@@ -15,11 +15,6 @@ const RoomSchema = mongoose.Schema({
         default: [],
         ref: 'User'
     },
-    message:{
-        type: [mongoose.Schema.Types.ObjectId],
-        default: [],
-        ref: "Message"
-    },
     musicInQueue: {
         type: [mongoose.Schema.Types.ObjectId],
         default: [],

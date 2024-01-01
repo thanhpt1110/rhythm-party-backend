@@ -11,7 +11,9 @@ const socketInit = (io) => {
     })
     socket.on('join_room', (roomId) =>{
         socket.join("room"+roomId)
-        console.log(`User with id: ${socket.id} joined room ${roomId}`)
+        const roomSize = io.sockets.adapter.rooms.get("room"+roomId).size;
+        console.log(`User with id: ${socket.id} joined room ${roomId} with ${roomSize} people`)
+        io.to("room"+roomId).emit('update-people-in-room', roomSize);
     })
     socket.on('leave_room', (roomId) =>{
         socket.leave("room"+roomId);
