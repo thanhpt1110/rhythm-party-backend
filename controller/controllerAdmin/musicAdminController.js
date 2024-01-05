@@ -146,7 +146,6 @@ const getAllMusic = asyncHandler(async (req, res) => {
                 const result = await Music.find()
                     .populate('musicPostOwnerID', 'displayName')
                     .select('musicName author genre musicPrivacyType createdAt')
-
                 const resultWithMessageCount = result.map(music => ({
                     id: music._id,
                     Song: music.musicName,
@@ -191,7 +190,6 @@ const searchAllMusic = asyncHandler(async (req, res) => {
                 .skip(index) // Bỏ qua các bản ghi từ đầu tiên đến index
                 .limit(quantity)
                 .select('musicName author genre musicPrivacyType createdAt') // Chọn các trường bạn muốn hiển thị
-
             const resultWithMessageCount = music.map(music => ({
                 id: music._id,
                 Song: music.musicName,

@@ -50,6 +50,7 @@ const musicSchema = mongoose.Schema({
     },
     musicPrivacyType: {
         type: String,
+        enum: [MusicTable.MUSIC_PRIVACY_PRIVATE, MusicTable.MUSIC_PRIVACY_PUBLIC],
         default: MusicTable.MUSIC_PRIVACY_PRIVATE
     },
     musicAuthorize: {
