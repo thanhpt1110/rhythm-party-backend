@@ -131,7 +131,6 @@ const approveList = asyncHandler(async (req, res) => {
     }
     else
         return res.sendStatus(401);
-    
 })
 // const deleteList
 const deleteList = asyncHandler(async (req, res) => {
