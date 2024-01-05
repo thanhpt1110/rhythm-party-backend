@@ -117,7 +117,7 @@ const approveList = asyncHandler(async (req, res) => {
     if(req.isAuthenticated())
     {
         try{
-            const approveStatus = req.query.approve;
+            const approveStatus = req.query.approve ? req.query.approve : "Unauthorize";
             const listMusicApprove = req.body;
             const idsToUpdate = listMusicApprove.map(music => music._id);
             const newListMusic = await Music.updateMany({ _id: { $in: idsToUpdate } },{$set: {musicAuthorize: approveStatus, isRequest: false}});

@@ -80,6 +80,10 @@ const getPlaylistByID = asyncHandler(async (req, res) => {
 				path: "ownerPlaylistID",
 				model: "User",
 				select: ["displayName"],
+			}).populate({
+				path: "listMusic",
+				model: "Music",
+				select:["musicName", "duration", "url", "imgUrl"]
 			});
 			if (playlist)
 				return res
