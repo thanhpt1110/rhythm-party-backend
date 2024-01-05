@@ -61,7 +61,7 @@ const getTopMusic = asyncHandler(async (req,res)=>{
     // Lấy giá trị từ query parameter 'search'
         // Sử dụng biểu thức chính quy để tạo điều kiện tìm kiếm
         try{
-            const quantity = req.query.quantity || 20
+            const quantity = 20
             const index = (req.query.index || 0) * quantity
             const music = await Music.find({
             musicPrivacyType: MusicTable.MUSIC_PRIVACY_PUBLIC,
@@ -112,7 +112,8 @@ const uploadMusic = asyncHandler(async (req, res)=>{
                 imgUrl: imgUrl ? imgUrl : null,
                 releaseYear: releaseYear,
                 musicPrivacyType: musicPrivacyType,
-                musicPostOwnerID: req.user.user._id
+                musicPostOwnerID: req.user.user._id,
+                isRequest: musicPrivacyType === MusicTable.MUSIC_PRIVACY_PUBLIC ? true : false 
             })
             res.status(200).json({message: "Success", data: music, accessToken: req.user.accessToken})
             }
@@ -140,24 +141,30 @@ const updateMusicInformation = asyncHandler(async(req,res)=>{
                 if(existedMusic.musicPostOwnerID !== req.user.user._id)
                 {
                     try 
-                    {                
+                    {     
                         const {musicName, genre, author,musicPrivacyType, lyrics, duration, description, url,imgUrl, releaseYear} = req.body ;
-                        const music = {           
+                        
+                        const musicUpdate = {           
                         musicName: musicName? musicName: existedMusic.musicName,
                         genre: genre ? genre :existedMusic.genre,
                         author: author ? author: existedMusic.author,
                         lyrics: lyrics ? lyrics: existedMusic.lyrics,
                         duration: duration ? duration: existedMusic.duration,
-                        musicPrivacyType: musicPrivacyType ? musicPrivacyType: existedMusic.musicPrivacyType,
+                        musicPrivacyType: musicPrivacyType ? musicPrivacyType : existedMusic.musicPrivacyType,
                         description: description ? description: existedMusic.description,
                         url: url ? url : existedMusic.url,
                         imgUrl: imgUrl ? imgUrl : existedMusic.imgUrl,
-                        releaseYear: releaseYear ? releaseYear: existedMusic.releaseYear} 
-                        const result = await Music.findOneAndUpdate({ _id: _id }, { $set: music }, {new:true});
+                        isRequest: musicPrivacyType ? musicPrivacyType === MusicTable.MUSIC_PRIVACY_PUBLIC && existedMusic.musicAuthorize === MusicTable.MUSIC_AUTHENTICATION_UNAUTHORIZE ? true : false : existedMusic.isRequest,
+                        releaseYear: releaseYear ? releaseYear: existedMusic.releaseYear
+                        } 
+                        console.log("music");
+                        console.log(musicUpdate)
+                        const result = await Music.findOneAndUpdate({ _id: _id }, { $set: musicUpdate }, {new:true});
                         const respone = {message: "Success", data: result} 
                         res.status(200).json(respone);
                     }
                     catch(e){
+                        console.log(e);
                         res.status(500).json({message: "Server error"})
                     }
                 }

@@ -16,11 +16,11 @@ const {
 const { authenticateToken } = require('../../authentication/jwtAuth');
 
 // GET: lấy thông tin tất cả bài hát chưa được kiểm duyệt 
-router.route('/music-unauthentication').get(authenticateToken, getMusicUnauthentication)
+router.route('/music-unauthentication').get(authenticateToken, getMusicUnauthentication).put(authenticateToken, approveList)
 
 // GET: Tìm các bài hát chưa được kiểm duyêt 
 router.route('/music-unauthentication/search').get(authenticateToken, searchUnauthenticatedMusic)
-
+router.route('/music-unauthentication/:id').put(authenticateToken,approveSong)
 // GET: Lấy thông tin tất cả bài hát
 router.route('/').get(authenticateToken, getAllMusic);
 

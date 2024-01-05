@@ -11,7 +11,8 @@ const getMusicUnauthentication = asyncHandler(async (req, res) => {
             try {
                 const result = await Music.find({
                     musicPrivacyType: MusicTable.MUSIC_PRIVACY_PUBLIC,
-                    musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_UNAUTHORIZE
+                    musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_UNAUTHORIZE,
+                    isRequest: true
                 })
                     .populate('musicPostOwnerID', 'displayName')
                     .select('musicName author genre createdAt') // Chọn các trường bạn muốn hiển thị
@@ -53,7 +54,8 @@ const searchUnauthenticatedMusic = asyncHandler(async (req, res) => {
                     { author: { $regex: searchMusicRegex } },
                 ]
                 , musicPrivacyType: MusicTable.MUSIC_PRIVACY_PUBLIC,
-                musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_UNAUTHORIZE
+                musicAuthorize: MusicTable.MUSIC_AUTHENTICATION_UNAUTHORIZE,
+                isRequest: true
             }
             )
                 .populate('musicPostOwnerID', 'displayName')
@@ -85,11 +87,51 @@ const searchUnauthenticatedMusic = asyncHandler(async (req, res) => {
 
 // const approveSong
 const approveSong = asyncHandler(async (req, res) => {
-
+    if(req.isAuthenticated())
+    {
+        try{
+            const id = req.params.id;
+            const musicApprove = req.body;
+            const music = await Music.findById(id);
+            if(!music)
+                return res.sendStatus(404);
+            const newMusic = await Music.updateOne({_id: id}, {$set: {
+                isRequest: false,
+                musicAuthorize: musicApprove.musicAuthorize
+                
+            }},{new: true})
+            return res.status(200).json({message: "Success", data: newMusic})
+        }
+        catch(e)
+        {
+            console.log(e);
+            return res.sendStatus(500)
+        }
+    }
+    else{
+        return res.sendStatus(401);
+    }
 })
 // const approveList
 const approveList = asyncHandler(async (req, res) => {
-
+    if(req.isAuthenticated())
+    {
+        try{
+            const approveStatus = req.query.approve;
+            const listMusicApprove = req.body;
+            const idsToUpdate = listMusicApprove.map(music => music._id);
+            const newListMusic = await Music.updateMany({ _id: { $in: idsToUpdate } },{$set: {musicAuthorize: approveStatus, isRequest: false}});
+            res.status(200).json({message: 'Success', data: newListMusic})
+        }
+        catch(e)
+        {
+            console.log(e);
+            res.sendStatus(500);
+        }
+    }
+    else
+        return res.sendStatus(401);
+    
 })
 // const deleteList
 const deleteList = asyncHandler(async (req, res) => {
