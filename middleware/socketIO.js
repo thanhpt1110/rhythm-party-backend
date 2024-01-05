@@ -62,7 +62,7 @@ const socketInit = (io) => {
         socket.join("music"+musicId)
         console.log(`User with id: ${socket.id} joined music ${musicId}`)
     })
-    const createTimer = (id) => {
+    const createTimer = async(id) => {
         console.log("Create timer");
         const timer = setInterval(async () => {
             try{
@@ -149,6 +149,15 @@ const socketInit = (io) => {
                         path: "currentMusicPlay",
                         select: ['author','musicName','_id','url','imgUrl','duration']
                     });;
+                    if(!newRoom.currentMusicPlay)
+                    {
+                        roomTimers[room._id] = {
+                            time:0,
+                            room: newRoom,
+                            timer: null
+                          };
+                        return;
+                    }
                     if(roomTimers[room._id])
                     {
                         console.log("already hay timer");
@@ -158,7 +167,7 @@ const socketInit = (io) => {
                         roomTimers[room._id] = {
                             time:0,
                             room: newRoom,
-                            timer: createTimer(room._id)
+                            timer: await createTimer(room._id)
                           };
                     }
                     console.log('Hello')
@@ -235,11 +244,23 @@ const socketInit = (io) => {
            console.log(data.room._id); 
            const newRoom = await Room.findById(data.room._id)
            console.log(newRoom)
-           const newRoomUpdate = await Room.findOneAndUpdate({_id:newRoom._id},{$set:{currentMusicPlay:newRoom.musicInQueue[0]._id}},{new:true})
-           socket.to("room" + newRoom.roomId).emit("receive_playlist_change_room", newRoomUpdate);
+           const newRoomUpdate = await Room.findOneAndUpdate({_id:newRoom._id},{$set:{currentMusicPlay:newRoom.musicInQueue[0]._id}},{new:true})           
+           .populate({
+            path: 'musicInQueue',
+            select: ['author','musicName','_id','url','imgUrl','duration']
+            })
+            .populate({
+                path: "currentMusicPlay",
+                select: ['author','musicName','_id','url','imgUrl','duration']
+            });
+           roomTimers[data.room._id].room = newRoomUpdate;
+           if(!roomTimers[data.room._id].timer)
+            roomTimers[data.room._id].timer = await createTimer(newRoomUpdate._id)
+           io.to("room"+newRoomUpdate._id).emit('update_music_current', newRoomUpdate);
+           io.to("room" + newRoom.roomId).emit("receive_playlist_change_room", newRoomUpdate);
         }
         else
-            socket.to("room" + data.room.roomId).emit("receive_playlist_change_room", data.room);
+           io.to("room" + data.room.roomId).emit("receive_playlist_change_room", data.room);
         }
         catch(e)
         {
