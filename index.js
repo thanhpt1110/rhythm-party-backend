@@ -2,6 +2,8 @@ require('dotenv').config();
 const mongoose = require('mongoose')
 const URL = process.env.CONNECTION_STRING
 const PORT = process.env.PORT
+const CLIENT_URL = 'https://rhythm-party.vercel.app'
+const ADMIN_URL = process.env.ADMIN_URL
 const ADMIN_PORT = process.env.ADMIN_PORT
 const http = require('http');
 const {Server} = require('socket.io')
@@ -27,7 +29,7 @@ connect();
 const db = mongoose.connection;
 const clientApp = express()
 clientApp.use(cors({
-    origin: 'http://localhost:3000',
+    origin: CLIENT_URL,
     methods: "GET,POST,PUT,DELETE",
     credentials: true
 }))
@@ -65,7 +67,7 @@ clientApp.use('/api/room',require('./route/routeClient/roomRoute.js'))
 const server = http.createServer(clientApp);
 const io = new Server(server,{
     cors:{
-        origin: 'http://localhost:3000',
+        origin: CLIENT_URL,
         methods: ['GET','POST']
     }
 })
