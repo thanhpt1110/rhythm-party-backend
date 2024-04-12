@@ -13,7 +13,8 @@ const cors = require('cors')
 const session = require('express-session')
 const MongoStore = require('connect-mongo');
 const errorHandler = require('./middleware/errorHandler.js')
-const secretSessionKey = process.env.SECRET_SESSION_KEY || "Hello world"
+const secretSessionKeyClient = process.env.SECRET_SESSION_KEY || "Hello world"
+const secretSessionKeyAdmin = process.env.SECRET_SESSION_KEY_ADMIN || "Hello world"
 const {authClientWeb, authAdminWeb} = require('./authentication/auth.js')
 const cookieParser = require('cookie-parser');
 
@@ -52,7 +53,7 @@ clientApp.use(cookieParser());
 clientApp.set('trust proxy', 1); // chỉ cần thiết nếu bạn đang sử dụng proxy
 clientApp.use(session({
     store: MongoStore.create({ mongoUrl:URL}),
-    secret: secretSessionKey,
+    secret: secretSessionKeyClient,
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -107,7 +108,7 @@ adminApp.use(errorHandler);
 adminApp.set('trust proxy', 1); // chỉ cần thiết nếu bạn đang sử dụng proxy
 adminApp.use(session({
     store: MongoStore.create({ mongoUrl:URL}),
-    secret: secretSessionKey,
+    secret: secretSessionKeyAdmin,
     resave: false,
     saveUninitialized: true,
     cookie: {
