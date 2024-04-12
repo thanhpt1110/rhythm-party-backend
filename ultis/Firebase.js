@@ -1,15 +1,15 @@
 const { initializeApp } = require('firebase/app');
 const { getStorage, ref, deleteObject  } = require('firebase/storage');
-
+require('dotenv').config();
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDM8OQFO6rrCVUmZHqXWMpXj2Cp37D5NZo",
-  authDomain: "rythm-party.firebaseapp.com",
-  projectId: "rythm-party",
-  storageBucket: "rythm-party.appspot.com",
-  messagingSenderId: "613991631137",
-  appId: "1:613991631137:web:72d345c9a14141f9891660",
-  measurementId: "G-T9MN1K6GE8"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
