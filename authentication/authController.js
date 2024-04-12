@@ -3,6 +3,7 @@ const CLIENT_URL = process.env.CLIENT_URL;
 const User = require('../model/UserModel')
 const asyncHandler = require('express-async-handler')
 const isLoggedIn = (req,res,next)=>{
+  
     req.user ? next(): res.sendStatus(401);
 }
 const isAuthenticatedCallBack = ()=>{}

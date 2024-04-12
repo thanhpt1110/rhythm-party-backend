@@ -66,7 +66,7 @@ authClientWeb.use(new GoogleStrategy({
                 refreshToken: refreshToken,
                 accessToken: accessToken
             }
-            done(null,userRespone)
+            await done(null,userRespone)
         }
     }
     catch(Exception)
@@ -145,6 +145,7 @@ authClientWeb.serializeUser((user,done)=>{
     done(null,user)
 })
 authClientWeb.deserializeUser((user,done)=>{
+    console.log(user)
     done(null,user)
 })
 authAdminWeb.serializeUser((user,done)=>{

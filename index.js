@@ -9,9 +9,11 @@ const express = require('express')
 const {socketInit} = require('./middleware/socketIO.js')
 const cors = require('cors')
 const session = require('express-session')
+const MongoStore = require('connect-mongo');
 const errorHandler = require('./middleware/errorHandler.js')
 const secretSessionKey = process.envSECRET_SESSION_KEY || "Hello world"
 const {authClientWeb, authAdminWeb} = require('./authentication/auth.js')
+const cookieParser = require('cookie-parser');
 const connect = async ()=>{
     try{
         await mongoose.connect(URL)
@@ -22,6 +24,7 @@ const connect = async ()=>{
     }   
 }
 connect();
+const db = mongoose.connection;
 const clientApp = express()
 clientApp.use(cors({
     origin: 'http://localhost:3000',
@@ -30,11 +33,20 @@ clientApp.use(cors({
 }))
 clientApp.use(express.json());
 clientApp.use(errorHandler);
+clientApp.use(cookieParser());
+clientApp.set('trust proxy', 1); // chỉ cần thiết nếu bạn đang sử dụng proxy
 clientApp.use(session({
+    store: MongoStore.create({ mongoUrl:URL}),
     secret: secretSessionKey,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false, maxAge: 60*60*1000 }
+    cookie: {
+        secure: true, // chỉ cần thiết nếu ứng dụng của bạn chạy trên HTTPS
+        sameSite: 'none', // chỉ cần thiết nếu ứng dụng của bạn chạy trên nhiều domain
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 30 // thời gian sống của cookie
+      },
+
   }))
 clientApp.use(authClientWeb.initialize())
 clientApp.use(authClientWeb.session())
@@ -69,11 +81,19 @@ adminApp.use(cors({
 }))
 adminApp.use(express.json());
 adminApp.use(errorHandler);
+adminApp.set('trust proxy', 1); // chỉ cần thiết nếu bạn đang sử dụng proxy
 adminApp.use(session({
+    store: MongoStore.create({ mongoUrl:URL}),
     secret: secretSessionKey,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false, maxAge: 60*60*1000 }
+    cookie: {
+        secure: true, // chỉ cần thiết nếu ứng dụng của bạn chạy trên HTTPS
+        sameSite: 'none', // chỉ cần thiết nếu ứng dụng của bạn chạy trên nhiều domain
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 30 // thời gian sống của cookie
+      },
+
   }))
 adminApp.use(authAdminWeb.initialize())
 adminApp.use(authAdminWeb.session())
