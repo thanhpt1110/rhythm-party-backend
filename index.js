@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const URL = process.env.CONNECTION_STRING
 const PORT = process.env.PORT
 const CLIENT_URL = 'https://rhythm-party.vercel.app'
-const ADMIN_URL = process.env.ADMIN_URL
+const ADMIN_URL = 'https://rhythm-party-admin.vercel.app'
 const ADMIN_PORT = process.env.ADMIN_PORT
 const http = require('http');
 const {Server} = require('socket.io')
@@ -77,7 +77,7 @@ server.listen(PORT,()=>{console.log(`server run on port ${PORT}`)})
 // Admin app
 const adminApp= express()
 adminApp.use(cors({
-    origin: 'http://localhost:3001',
+    origin: ADMIN_URL,
     methods: "GET,POST,PUT,DELETE",
     credentials: true
 }))
