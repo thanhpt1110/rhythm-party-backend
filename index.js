@@ -2,9 +2,9 @@ require('dotenv').config();
 const mongoose = require('mongoose')
 const URL = process.env.CONNECTION_STRING
 const PORT = process.env.PORT
+const ADMIN_PORT = process.env.ADMIN_PORT
 const CLIENT_URL = 'https://rhythm-party.vercel.app'
 const ADMIN_URL = 'https://rhythm-party-admin.vercel.app'
-const ADMIN_PORT = process.env.ADMIN_PORT
 const http = require('http');
 const {Server} = require('socket.io')
 const express = require('express')
@@ -13,7 +13,7 @@ const cors = require('cors')
 const session = require('express-session')
 const MongoStore = require('connect-mongo');
 const errorHandler = require('./middleware/errorHandler.js')
-const secretSessionKey = process.envSECRET_SESSION_KEY || "Hello world"
+const secretSessionKey = process.env.SECRET_SESSION_KEY || "Hello world"
 const {authClientWeb, authAdminWeb} = require('./authentication/auth.js')
 const cookieParser = require('cookie-parser');
 
