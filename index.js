@@ -16,7 +16,8 @@ const errorHandler = require('./middleware/errorHandler.js')
 const secretSessionKey = process.envSECRET_SESSION_KEY || "Hello world"
 const {authClientWeb, authAdminWeb} = require('./authentication/auth.js')
 const cookieParser = require('cookie-parser');
-const connect = async ()=>{
+
+const connect = async()=>{
     try{
         await mongoose.connect(URL)
         console.log('Connect to mongoDB')
@@ -27,9 +28,21 @@ const connect = async ()=>{
 }
 connect();
 const db = mongoose.connection;
+
+var allowedOrigins = [CLIENT_URL, ADMIN_URL];
+
+// Client app
 const clientApp = express()
 clientApp.use(cors({
-    origin: CLIENT_URL,
+    origin: function(origin, callback){
+        if(!origin) return callback(null, true);
+        if(allowedOrigins.indexOf(origin) === -1){
+            var msg = 'The CORS policy for this site does not ' +
+                      'allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
     methods: "GET,POST,PUT,DELETE",
     credentials: true
 }))
@@ -77,7 +90,15 @@ server.listen(PORT,()=>{console.log(`server run on port ${PORT}`)})
 // Admin app
 const adminApp= express()
 adminApp.use(cors({
-    origin: ADMIN_URL,
+    origin: function(origin, callback){
+        if(!origin) return callback(null, true);
+        if(allowedOrigins.indexOf(origin) === -1){
+            var msg = 'The CORS policy for this site does not ' +
+                      'allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
     methods: "GET,POST,PUT,DELETE",
     credentials: true
 }))
@@ -113,3 +134,4 @@ const adminServer = http.createServer(adminApp);
 adminServer.listen(ADMIN_PORT, () => {
     console.log(`Admin app server run on port ${ADMIN_PORT}`);
 });
+
