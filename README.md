@@ -1,5 +1,5 @@
 # <img src="https://raw.githubusercontent.com/thanhpt1110/rhythm-party-admin/master/src/assets/logo.png" alt="Your Image" width="auto" height="30"> Rhythm Party (Backend Service)
-This repository serves as the backend for Rhythm Party. This is built using Node.js and incorporates technologies such as Express.js, Socket.IO, JWT and Passport.js authentication.
+This repository serves as the backend for Rhythm Party. This is built using Node.js and incorporates technologies such as Express.js, Socket.IO, JWT and Passport.js authentication. 
 
 ## Features
 - Client: 
